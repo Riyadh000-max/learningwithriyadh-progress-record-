@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mr.Riyadh Progress Record</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* LOADING OVERLAY */
+#loading-overlay{position:fixed;inset:0;background:rgba(13,148,136,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:'Tajawal',sans-serif}
+#loading-overlay .spin{width:44px;height:44px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading-overlay .load-txt{font-size:.88rem;opacity:.85}
+</style>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal:#0d9488;--teal-d:#0f766e;--teal-l:#14b8a6;--teal-50:#f0fdfa;
+  --green:#22c55e;--green-bg:#dcfce7;--green-txt:#166534;
+  --red:#ef4444;--red-bg:#fecaca;--red-txt:#991b1b;
+  --amber:#f59e0b;--amber-bg:#fef3c7;--amber-txt:#92400e;
+  --blue:#3b82f6;--blue-bg:#dbeafe;--blue-txt:#1e40af;
+  --purple:#8b5cf6;--purple-bg:#ede9fe;--purple-txt:#5b21b6;
+  --slate:#64748b;--bg:#eef2f7;--card:#fff;
+  --shadow:0 2px 12px rgba(15,118,110,0.1);
+}
+body{font-family:'Tajawal','Poppins',sans-serif;background:var(--bg);min-height:100vh;color:#1e293b;overflow-x:hidden}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#134e4a 0%,#0d9488 50%,#14b8a6 100%);position:relative;overflow:hidden;padding:24px 16px 20px;text-align:center;color:#fff}
+.header::before{content:'';position:absolute;top:-50px;right:-50px;width:220px;height:220px;background:rgba(255,255,255,0.06);border-radius:50%}
+.header::after{content:'';position:absolute;bottom:-70px;left:-40px;width:200px;height:200px;background:rgba(255,255,255,0.04);border-radius:50%}
+.header h1{font-family:'Amiri',serif;font-size:1.6rem;font-weight:700;position:relative;z-index:1;text-shadow:0 1px 3px rgba(0,0,0,.2);line-height:1.35}
+.header .sub{font-size:.73rem;opacity:.7;margin-top:5px;position:relative;z-index:1;font-weight:300;line-height:1.7}
+
+/* LANG TOGGLE */
+.lang-toggle{position:absolute;top:10px;left:12px;z-index:2;display:flex;gap:4px}
+.lang-btn{padding:4px 9px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-size:.68rem;font-family:'Poppins',inherit;font-weight:600;transition:all .2s;letter-spacing:.5px}
+.lang-btn:hover{background:rgba(255,255,255,.15)}
+.lang-btn.active{background:#fff;color:var(--teal)}
+
+/* MODE BAR */
+.mode-bar{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:9px 12px;display:flex;justify-content:center;gap:8px;position:sticky;top:0;z-index:100}
+.mode-btn{padding:8px 20px;border:2px solid #e2e8f0;border-radius:24px;background:#f8fafc;color:var(--slate);cursor:pointer;font-size:.82rem;font-family:inherit;font-weight:600;transition:all .25s;-webkit-tap-highlight-color:transparent}
+.mode-btn:hover{border-color:var(--teal-l);color:var(--teal)}
+.mode-btn.active{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 2px 8px rgba(13,148,136,.35)}
+
+/* PIN MODAL */
+.pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.pin-overlay.show{opacity:1;pointer-events:auto}
+.pin-card{background:#fff;border-radius:22px;padding:32px 24px 26px;width:90%;max-width:340px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.22);transform:scale(.92);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.pin-overlay.show .pin-card{transform:scale(1)}
+.pin-card .lock-icon{font-size:2.4rem;margin-bottom:8px}
+.pin-card h3{font-family:'Amiri',serif;color:var(--teal);font-size:1.15rem;margin-bottom:2px}
+.pin-card .pin-sub{font-size:.72rem;color:var(--slate);margin-bottom:16px}
+.pin-dots{display:flex;justify-content:center;gap:9px;margin-bottom:5px;height:22px;align-items:center}
+.pin-dot{width:13px;height:13px;border-radius:50%;background:#e2e8f0;transition:background .18s,transform .18s}
+.pin-dot.filled{background:var(--teal);transform:scale(1.15)}
+.pin-dot.error{background:var(--red);animation:shake .45s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.pin-error-msg{color:var(--red);font-size:.71rem;height:17px;margin-bottom:10px}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:210px;margin:0 auto 14px}
+.pin-key{width:100%;aspect-ratio:1.1;border-radius:13px;border:1.5px solid #e2e8f0;background:#fafbff;font-size:1.3rem;font-weight:700;color:#334155;cursor:pointer;transition:all .12s;font-family:inherit;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.pin-key:hover{background:#eef2ff;border-color:var(--teal-l)}
+.pin-key:active{transform:scale(.9);background:#e0f2fe}
+.pin-key.hash{font-size:1.1rem;color:var(--teal);font-weight:700}
+.pin-key.back{font-size:1rem;color:var(--slate)}
+.pin-close-btn{padding:6px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:var(--slate);cursor:pointer;font-size:.76rem;font-family:inherit;transition:all .2s}
+.pin-close-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* STUDENT LANDING */
+.student-landing{max-width:440px;margin:20px auto;padding:0 14px}
+.student-card{background:#fff;border-radius:18px;padding:28px 20px;box-shadow:var(--shadow);border:1px solid #eef2ff;text-align:center}
+.student-card .icon{font-size:2.6rem;margin-bottom:6px}
+.student-card h2{font-family:'Amiri',serif;color:var(--teal);font-size:1.2rem;margin-bottom:2px}
+.student-card .s-sub{font-size:.74rem;color:var(--slate);margin-bottom:18px}
+.student-card select{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid #cbd5e1;font-size:.84rem;font-family:inherit;background:#fff;cursor:pointer;outline:none;margin-bottom:9px;transition:border-color .2s}
+.student-card select:focus{border-color:var(--teal)}
+
+/* TEACHER TABS */
+.teacher-tabs{display:flex;justify-content:center;gap:5px;padding:10px 8px 5px;flex-wrap:wrap}
+.t-tab{padding:7px 15px;border-radius:20px;border:1.5px solid #e2e8f0;background:#fff;color:var(--slate);cursor:pointer;font-size:.78rem;font-family:inherit;font-weight:600;transition:all .2s;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.t-tab:hover{border-color:var(--teal-l);color:var(--teal)}
+.t-tab.active{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 2px 6px rgba(13,148,136,.3)}
+
+/* CLASS TABS */
+.class-tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;padding:5px 8px 3px}
+.c-tab{padding:4px 11px;border-radius:16px;border:1.5px solid var(--teal);background:#fff;color:var(--teal);cursor:pointer;font-size:.74rem;font-family:inherit;font-weight:600;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.c-tab:hover{background:var(--teal-50)}
+.c-tab.active{background:var(--teal);color:#fff;box-shadow:0 2px 5px rgba(13,148,136,.3)}
+
+/* TIME SELECTOR */
+.time-sel{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;padding:8px 8px 3px;align-items:center}
+.time-sel label{font-size:.70rem;color:var(--slate);font-weight:600}
+.time-sel select{padding:5px 9px;border-radius:8px;border:1.5px solid #cbd5e1;font-size:.74rem;font-family:inherit;background:#fff;cursor:pointer;outline:none;transition:border-color .2s}
+.time-sel select:focus{border-color:var(--teal)}
+
+/* CONTROLS */
+.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:5px 8px 3px}
+.ctrl-btn{padding:5px 11px;border-radius:8px;border:none;cursor:pointer;font-size:.71rem;font-family:inherit;font-weight:600;transition:all .18s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.ctrl-btn:active{transform:scale(.94)}
+.btn-present{background:#d1fae5;color:#065f46}.btn-present:hover{background:#a7f3d0}
+.btn-absent{background:#fee2e2;color:#991b1b}.btn-absent:hover{background:#fecaca}
+.btn-clear{background:#f1f5f9;color:var(--slate)}.btn-clear:hover{background:#e2e8f0}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:5px 8px 7px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--slate)}
+.legend-dot{width:11px;height:11px;border-radius:3px}
+
+/* STATS */
+.stats{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:5px 8px 8px}
+.stat-card{background:#fff;border-radius:10px;padding:6px 10px;text-align:center;box-shadow:var(--shadow);border:1px solid #eef2ff;min-width:54px}
+.stat-card .num{font-size:1.05rem;font-weight:700;line-height:1.2}
+.stat-card .lbl{font-size:.60rem;color:var(--slate);margin-top:1px;line-height:1.3}
+
+/* TABLE */
+.table-wrap{padding:0 8px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);min-width:260px}
+thead th{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;padding:9px 5px;font-size:.70rem;font-weight:600}
+thead th .en{font-size:.60rem;opacity:.7;display:block;margin-top:1px;font-family:'Poppins',sans-serif;font-weight:400}
+tbody td{padding:6px 3px;text-align:center;border-bottom:1px solid #f1f5f9;font-size:.76rem}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafbff}
+.td-name{text-align:right!important;padding-right:8px!important;font-weight:500;color:#334155;white-space:nowrap;font-size:.74rem!important}
+.td-num{color:var(--slate);font-size:.68rem!important;font-weight:600}
+
+/* ATTENDANCE BTN */
+.att-btn{width:36px;height:36px;border-radius:9px;border:none;cursor:pointer;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto;transition:transform .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent}
+.att-btn:active{transform:scale(.9)}
+.att-btn.present{background:var(--green);color:#fff;box-shadow:0 2px 5px rgba(34,197,94,.35)}
+.att-btn.absent{background:var(--red);color:#fff;box-shadow:0 2px 5px rgba(239,68,68,.35)}
+.att-btn.excused{background:var(--amber);color:#fff;box-shadow:0 2px 5px rgba(245,158,11,.35)}
+.att-btn.unmarked{background:#e2e8f0;color:#94a3b8}
+.att-btn:hover{transform:scale(1.08)}
+
+/* SCORE INPUT */
+.score-inp{width:44px;padding:5px 2px;border-radius:7px;border:1.5px solid #cbd5e1;text-align:center;font-size:.80rem;font-weight:600;font-family:inherit;outline:none;transition:border-color .2s,background .2s;background:#fff}
+.score-inp:focus{border-color:var(--teal);background:#f0fdfa}
+.score-inp.filled{background:var(--blue-bg);border-color:var(--blue);color:var(--blue-txt)}
+.score-inp.invalid{border-color:var(--red)!important;background:#fff5f5}
+
+/* RATING BUTTONS */
+.rating-btn{padding:5px 10px;border-radius:8px;border:1.5px solid #e2e8f0;background:#f8fafc;color:var(--slate);cursor:pointer;font-size:.72rem;font-family:inherit;font-weight:600;transition:all .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;min-width:88px;text-align:center}
+.rating-btn:hover{border-color:#cbd5e1;transform:scale(1.04)}
+.rating-btn:active{transform:scale(.95)}
+.rating-btn.unmarked{background:#f8fafc;color:#94a3b8;border-color:#e2e8f0}
+.rating-btn.acceptable{background:var(--amber-bg);color:var(--amber-txt);border-color:var(--amber)}
+.rating-btn.brilliant{background:var(--blue-bg);color:var(--blue-txt);border-color:var(--blue)}
+.rating-btn.masterpiece{background:#fef9c3;color:#854d0e;border-color:#eab308;box-shadow:0 1px 4px rgba(234,179,8,.25)}
+
+/* RATING BADGE (student view) */
+.rating-badge{display:inline-block;padding:4px 12px;border-radius:10px;font-size:.74rem;font-weight:700}
+.rating-badge.acceptable{background:var(--amber-bg);color:var(--amber-txt)}
+.rating-badge.brilliant{background:var(--blue-bg);color:var(--blue-txt)}
+.rating-badge.masterpiece{background:#fef9c3;color:#854d0e;border:1px solid #eab308}
+.rating-badge.pending{background:#f1f5f9;color:var(--slate);font-weight:400}
+
+/* HW CHECKBOX */
+.hw-check{width:22px;height:22px;accent-color:var(--teal);cursor:pointer;transition:transform .1s}
+.hw-check:hover{transform:scale(1.12)}
+
+/* EXPORT BAR */
+.export-bar{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;padding:12px 8px 18px}
+.exp-btn{padding:7px 16px;border-radius:10px;border:none;cursor:pointer;font-size:.74rem;font-family:inherit;font-weight:600;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.btn-export{background:#3b82f6;color:#fff}.btn-export:hover{background:#2563eb;box-shadow:0 2px 8px rgba(59,130,246,.4)}
+.btn-import{background:#8b5cf6;color:#fff}.btn-import:hover{background:#7c3aed;box-shadow:0 2px 8px rgba(139,92,246,.4)}
+
+/* HISTORY */
+.history-wrap{padding:0 8px 18px;max-height:560px;overflow-y:auto}
+.hist-date-header{font-size:.69rem;color:#fff;background:var(--teal);padding:5px 10px;border-radius:8px;margin:9px 0 4px;font-weight:600;text-align:center}
+.hist-row{display:flex;align-items:center;gap:7px;padding:4px 7px;border-radius:7px;font-size:.74rem}
+.hist-row:hover{background:#f8fafc}
+.hist-badge{padding:2px 8px;border-radius:10px;font-size:.64rem;font-weight:600;white-space:nowrap}
+.hist-badge.present{background:var(--green-bg);color:var(--green-txt)}
+.hist-badge.absent{background:var(--red-bg);color:var(--red-txt)}
+.hist-badge.excused{background:var(--amber-bg);color:var(--amber-txt)}
+
+/* STUDENT PROGRESS */
+.prog-section{background:#fff;border-radius:14px;padding:16px 14px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid #eef2ff}
+.prog-section h3{font-family:'Amiri',serif;color:var(--teal);font-size:.95rem;margin-bottom:10px;text-align:center;line-height:1.4}
+
+/* Attendance Grid */
+.att-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+.att-week-label{grid-column:1/-1;font-size:.64rem;color:var(--slate);font-weight:600;margin-top:7px;margin-bottom:2px;text-align:right;padding-right:2px}
+.att-week-label:first-child{margin-top:0}
+.att-cell{border-radius:6px;padding:3px 1px;text-align:center;font-size:.62rem;min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+.att-cell .cell-day{font-size:.58rem;color:inherit;opacity:.7;font-family:'Poppins',sans-serif}
+.att-cell .cell-status{font-size:.64rem;font-weight:700}
+.att-cell.present{background:var(--green-bg);color:var(--green-txt)}
+.att-cell.absent{background:var(--red-bg);color:var(--red-txt)}
+.att-cell.excused{background:var(--amber-bg);color:var(--amber-txt)}
+.att-cell.empty{background:#f1f5f9;color:#cbd5e1}
+
+/* Score Rows */
+.score-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9}
+.score-row:last-child{border-bottom:none}
+.score-row .s-label{font-size:.76rem;color:#334155;line-height:1.4}
+.score-row .s-label .s-en{display:block;font-size:.62rem;color:var(--slate);font-family:'Poppins',sans-serif}
+.score-row .s-value{font-size:.84rem;font-weight:700}
+.score-row .s-value.got{color:var(--green)}
+.score-row .s-value.pending{color:var(--slate);font-weight:400;font-size:.72rem}
+
+/* Progress Bar */
+.prog-bar-wrap{margin-top:7px}
+.prog-bar-bg{background:#e2e8f0;border-radius:6px;height:7px;overflow:hidden}
+.prog-bar-fill{height:100%;border-radius:6px;transition:width .4s ease;min-width:0}
+.prog-pct{font-size:.65rem;color:var(--slate);margin-top:3px;text-align:right}
+
+/* HW Badge */
+.hw-badge{display:inline-block;padding:9px 22px;border-radius:12px;font-size:.82rem;font-weight:600;line-height:1.4}
+.hw-badge.done{background:var(--green-bg);color:var(--green-txt)}
+.hw-badge.pending{background:var(--red-bg);color:var(--red-txt)}
+.hw-badge .hw-en{display:block;font-size:.68rem;font-family:'Poppins',sans-serif;opacity:.75;margin-top:1px}
+
+/* MARKS SUB TABS */
+.marks-sub-tabs{display:flex;justify-content:center;gap:5px;padding:7px 8px 5px;flex-wrap:wrap}
+.ms-tab{padding:4px 12px;border-radius:16px;border:1.5px solid #e2e8f0;background:#fff;color:var(--slate);cursor:pointer;font-size:.72rem;font-family:inherit;font-weight:600;transition:all .2s;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.ms-tab:hover{border-color:var(--teal-l);color:var(--teal)}
+.ms-tab.active{background:var(--teal);border-color:var(--teal);color:#fff}
+
+/* SELECTOR CENTERED */
+.sel-center{text-align:center;padding:7px 8px 3px}
+.sel-center select{padding:5px 10px;border-radius:8px;border:1.5px solid #cbd5e1;font-size:.76rem;font-family:inherit;background:#fff;outline:none;cursor:pointer;transition:border-color .2s}
+.sel-center select:focus{border-color:var(--teal)}
+
+/* MESSAGES */
+.msg-compose{display:flex;gap:7px;padding:10px 8px 6px;align-items:center}
+.msg-input{flex:1;padding:9px 13px;border-radius:10px;border:1.5px solid #cbd5e1;font-size:.80rem;font-family:inherit;outline:none;background:#fff;transition:border-color .2s}
+.msg-input:focus{border-color:var(--teal)}
+.msg-list{padding:0 8px 14px}
+.msg-card{background:#fff;border-radius:12px;padding:11px 13px;margin-bottom:7px;box-shadow:var(--shadow);border:1px solid #eef2ff}
+.msg-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.msg-time{font-size:.64rem;color:var(--slate);font-family:'Poppins',sans-serif}
+.msg-text{font-size:.78rem;color:#334155;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.msg-delete{background:none;border:none;cursor:pointer;font-size:.78rem;opacity:.45;transition:opacity .2s;padding:2px 5px;border-radius:5px}
+.msg-delete:hover{opacity:1;background:#fee2e2}
+
+/* STRIKES */
+.str-info{padding:8px 8px 4px}
+.str-info-bar{display:flex;align-items:center;gap:8px;justify-content:center;background:#fff;border-radius:10px;padding:7px 14px;box-shadow:var(--shadow);border:1px solid #eef2ff}
+.str-info-total{font-size:1.1rem;font-weight:700}
+.str-info-label{font-size:.72rem;color:var(--slate)}
+.strike-count{display:inline-block;min-width:24px;text-align:center;font-size:.82rem;font-weight:700;color:var(--slate);padding:2px 6px;border-radius:8px;background:#f1f5f9}
+.strike-count.has-strikes{background:var(--red-bg);color:var(--red-txt)}
+.str-btns{display:flex;gap:4px;justify-content:center}
+.str-btn{width:26px;height:26px;border-radius:7px;border:none;cursor:pointer;font-size:.88rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:transform .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent}
+.str-btn:active{transform:scale(.88)}
+.str-add{background:var(--red-bg);color:var(--red-txt)}.str-add:hover{background:#fecaca}
+.str-rem{background:#f1f5f9;color:var(--slate)}.str-rem:hover{background:#e2e8f0}
+
+/* STUDENT VIEW — strike badge */
+.strike-badge{display:inline-block;padding:5px 14px;border-radius:12px;background:var(--red-bg);color:var(--red-txt);font-size:.78rem;font-weight:700}
+.strike-item{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #f1f5f9;font-size:.74rem}
+.strike-item:last-child{border-bottom:none}
+.strike-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red-bg);color:var(--red-txt);font-size:.68rem;font-weight:700;flex-shrink:0}
+.strike-date{color:var(--slate);font-family:'Poppins',sans-serif;font-size:.66rem}
+
+.hidden{display:none!important}
+
+/* RESPONSIVE */
+@media(max-width:480px){
+  .header h1{font-size:1.3rem}
+  .att-btn{width:32px;height:32px;font-size:.9rem}
+  .score-inp{width:40px;font-size:.76rem}
+  .td-name{font-size:.70rem!important}
+  tbody td{padding:5px 2px;font-size:.72rem}
+  .mode-btn{padding:7px 16px;font-size:.78rem}
+  .pin-card{padding:24px 16px 20px}
+  .pin-key{font-size:1.05rem}
+  .att-grid{grid-template-columns:repeat(5,1fr);gap:2px}
+  .att-cell{min-height:30px}
+}
+@media(max-width:360px){
+  .att-btn{width:28px;height:28px;font-size:.82rem}
+  .c-tab{padding:3px 8px;font-size:.68rem}
+  .score-inp{width:34px}
+  .att-cell{min-height:26px;font-size:.58rem}
+  .t-tab{font-size:.72rem;padding:6px 11px}
+}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="loading-overlay">
+  <div class="spin"></div>
+  <div class="load-txt" id="load-txt">جاري التحميل… / Loading…</div>
+</div>
+
+<div class="header">
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="lbtn-ar" onclick="setLang('ar')">العربية</button>
+    <button class="lang-btn" id="lbtn-en" onclick="setLang('en')">English</button>
+  </div>
+  <h1 id="header-title">📚 سجل متابعة استاذ رياض</h1>
+</div>
+
+<!-- MODE BAR -->
+<div class="mode-bar">
+  <button class="mode-btn" id="btn-teacher" data-ar="👨‍🏫 وضع المعلم" data-en="👨‍🏫 Teacher Mode" onclick="requestTeacher()">👨‍🏫 وضع المعلم</button>
+  <button class="mode-btn active" id="btn-student" data-ar="👨‍🎓 وضع الطالب" data-en="👨‍🎓 Student Mode" onclick="setMode('student')">👨‍🎓 وضع الطالب</button>
+</div>
+
+<!-- PIN MODAL -->
+<div class="pin-overlay" id="pin-overlay">
+  <div class="pin-card">
+    <div class="lock-icon">🔐</div>
+    <h3 id="pin-title" data-ar="الوصول المحمي" data-en="Protected Access">الوصول المحمي</h3>
+    <div class="pin-sub" id="pin-sub" data-ar="أدخل رقم التعريف للوصول إلى وضع المعلم" data-en="Enter your PIN to access Teacher Mode">أدخل رقم التعريف للوصول إلى وضع المعلم</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+    <div class="pin-error-msg" id="pin-error"></div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key hash" onclick="pinPress('#')">#</button>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key back" onclick="pinBack()">⌫</button>
+    </div>
+    <button class="pin-close-btn" id="pin-close" data-ar="إلغاء" data-en="Cancel" onclick="closePinModal()">إلغاء</button>
+  </div>
+</div>
+
+<!-- ===== TEACHER MODE ===== -->
+<div id="teacher-mode" class="hidden">
+  <div class="teacher-tabs">
+    <button class="t-tab active" id="ttab-att" data-ar="📋 الحضور" data-en="📋 Attendance" onclick="setTeacherTab('att')">📋 الحضور</button>
+    <button class="t-tab" id="ttab-marks" data-ar="📝 الدرجات" data-en="📝 Marks" onclick="setTeacherTab('marks')">📝 الدرجات</button>
+    <button class="t-tab" id="ttab-hist" data-ar="📅 السجل" data-en="📅 History" onclick="setTeacherTab('hist')">📅 السجل</button>
+    <button class="t-tab" id="ttab-msg" data-ar="💬 رسائل" data-en="💬 Messages" onclick="setTeacherTab('msg')">💬 رسائل</button>
+    <button class="t-tab" id="ttab-str" data-ar="⚠️ مخالفات" data-en="⚠️ Strikes" onclick="setTeacherTab('str')">⚠️ مخالفات</button>
+  </div>
+  <div class="class-tabs" id="class-tabs"></div>
+
+  <!-- ATTENDANCE TAB -->
+  <div id="tab-att">
+    <div class="time-sel">
+      <label id="lbl-week" data-ar="الأسبوع" data-en="Week">الأسبوع</label>
+      <select id="sel-week" onchange="curWeek=+this.value;renderAtt()"></select>
+      <label id="lbl-day" data-ar="اليوم" data-en="Day">اليوم</label>
+      <select id="sel-day" onchange="curDay=+this.value;renderAtt()"></select>
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn btn-present" id="btn-allpresent" data-ar="✓ حضور للجميع" data-en="✓ All Present" onclick="markAll('present')">✓ حضور للجميع</button>
+      <button class="ctrl-btn btn-absent" id="btn-allabsent" data-ar="✗ غيابات" data-en="✗ All Absent" onclick="markAll('absent')">✗ غيابات</button>
+      <button class="ctrl-btn btn-clear" id="btn-clear" data-ar="🗑 مسح" data-en="🗑 Clear" onclick="clearDay()">🗑 مسح</button>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="stats" id="stats"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="att-thead">
+          <th style="width:28px">#</th>
+          <th id="th-student" data-ar="الطالب" data-en="Student">الطالب</th>
+          <th style="width:46px" id="th-status" data-ar="الحضور" data-en="Status">الحضور</th>
+        </tr></thead>
+        <tbody id="att-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MARKS TAB -->
+  <div id="tab-marks" class="hidden">
+    <div class="marks-sub-tabs">
+      <button class="ms-tab active" id="mtab-proj" data-ar="🏆 المشاريع" data-en="🏆 Projects" onclick="setMarksTab('proj')">🏆 المشاريع</button>
+      <button class="ms-tab" id="mtab-hw" data-ar="📓 الواجبات" data-en="📓 Homework" onclick="setMarksTab('hw')">📓 الواجبات</button>
+    </div>
+
+    <!-- PROJECT -->
+    <div id="sub-proj">
+      <div class="sel-center"><select id="sel-proj" onchange="renderProjects()"></select></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:28px">#</th>
+            <th id="th-proj-student" data-ar="الطالب" data-en="Student">الطالب</th>
+            <th id="th-rating" data-ar="التقييم" data-en="Rating">التقييم</th>
+          </tr></thead>
+          <tbody id="proj-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HOMEWORK -->
+    <div id="sub-hw" class="hidden">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:28px">#</th>
+            <th id="th-hw-student" data-ar="الطالب" data-en="Student">الطالب</th>
+            <th style="width:46px" id="th-hw" data-ar="الواجب" data-en="HW">الواجب</th>
+          </tr></thead>
+          <tbody id="hw-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-hist" class="hidden">
+    <div class="sel-center" style="padding-top:10px">
+      <select id="sel-hist-week" onchange="renderHistory()"></select>
+    </div>
+    <div class="history-wrap" id="history-wrap"></div>
+  </div>
+
+  <!-- MESSAGES TAB -->
+  <div id="tab-msg" class="hidden">
+    <div class="msg-compose">
+      <input type="text" id="msg-input" class="msg-input" placeholder="" data-ar-ph="اكتب رسالة للطلاب…" data-en-ph="Write a message for students…">
+      <button class="ctrl-btn btn-present" id="btn-msg-send" data-ar="📤 إرسال" data-en="📤 Send" onclick="sendMessage()">📤 إرسال</button>
+    </div>
+    <div class="msg-list" id="msg-list"></div>
+  </div>
+
+  <!-- STRIKES TAB -->
+  <div id="tab-str" class="hidden">
+    <div class="str-info" id="str-info"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:28px">#</th>
+          <th id="th-str-student" data-ar="الطالب" data-en="Student">الطالب</th>
+          <th style="width:52px" id="th-str-count" data-ar="المخالفات" data-en="Strikes">المخالفات</th>
+          <th style="width:44px" id="th-str-btn" data-ar="+" data-en="+">+</th>
+        </tr></thead>
+        <tbody id="str-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="export-bar">
+    <button class="exp-btn btn-export" id="btn-export" data-ar="💾 تصدير" data-en="💾 Export" onclick="exportData()">💾 تصدير</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="exp-btn btn-import" id="btn-import" data-ar="📂 استيراد" data-en="📂 Import" onclick="document.getElementById('import-file').click()">📂 استيراد</button>
+  </div>
+</div>
+
+<!-- ===== STUDENT MODE ===== -->
+<div id="student-mode">
+  <div class="student-landing">
+    <div class="student-card">
+      <div class="icon">👨‍🎓</div>
+      <h2 id="student-title" data-ar="اطلع على متابعتك" data-en="View Your Progress">اطلع على متابعتك</h2>
+      <div class="s-sub" id="student-sub" data-ar="اختر فصلك واسمك" data-en="Select your class & name">اختر فصلك واسمك</div>
+      <select id="sel-s-class" onchange="onSClassSelect()"></select>
+      <select id="sel-s-name" onchange="showStudentProgress()"></select>
+    </div>
+    <div id="student-progress"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database-compat.js"></script>
+<script>
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyC9xG4MJtIbONhTMPBNpr16LA_pL4Er7QU",
+  authDomain: "riadh-tracker.firebaseapp.com",
+  databaseURL: "https://riadh-tracker-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "riadh-tracker",
+  storageBucket: "riadh-tracker.firebasestorage.app",
+  messagingSenderId: "642829998259",
+  appId: "1:642829998259:web:02683526c97bb675fa78c6"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ============================================================
+// IN-MEMORY CACHE (mirrors Firebase)
+// ============================================================
+const DB = { att:{}, projs:{}, hw:{}, msgs:[], str:{} };
+
+// ============================================================
+// DATA
+// ============================================================
+const C={
+1:["ابراهيم بندر الزهراني","البراء عبدالغني المصباحي","أمير متعب الغامدي","أنس خالد باقيس","بدر هشام العلوني","بسام أيمن الغامدي","تركي إبراهيم زغبي","تيم إياد أبو فول","تيم محمد البطريخي","ثامر أحمد الزهراني","راكان محمد العلياني","سعود صالح الحرشني","سيف محمد راجح","عاصم عبدالله الغامدي","عبدالعزيز أحمد عسيري","عبدالعزيز سلطان الأحمدي","عبدالعزيز صالح خليفه","عبدالله أحمد برعيه","عبدالله سعد الحربي","عبدالله سعيد الزهراني","عبدالله علي خشرم الشمري","عمر سلطان الزهراني","فراس حيان الغفري","فراس يحيى عسيري","فيصل عبدالعزيز العمودي","فيصل هشام العلوني","محمد أحمد باوارث","محمد سليمان الزهراني","محمد ظافر العمري","نايف غالي الشيخ","هتان عادل بالحول","وسام أحمد الزهراني","ياسر محمد قاسم","يوسف طه جداوى"],
+2:["إبراهيم حسين الكاف","أحمد عبدالرحمن البارقي","أسامه حمزة مراد","أسامه عبدالله عبدالله","الوليد نادر باديي","أنس محمد باشماخ","أويس عبدالرحمن باحسين","بتال فهد حمدان","تميم عبدالله البكري","توفيق الماحي حمد النيل","خالد عبدالله الثقفي","راكان فايز البلادي","زياد سامي باعبيد","زياد عبدالله الصيعري","سامر حامد الثقفي","سعيد خليل الزبيدي","صالح سالم الزهراني","صالح محمد بانشوان","عامر محمد عمر مراد","عبدالعزيز حسن العطاس","عبدالكريم مجد صوي","عبدالله سعيد الشمراني","عبدالملك فيصل الزهراني","عمار فوزي الغامدي","عمر محمد أبوعيران","فيصل عبدالله العتيبي","كريم محمد أحمد ناصيف","محسن مطهر الفقيه","محمد بشير الأمير","محمد سلطان القحطاني","محمد فيصل الزهراني","مشعل طلال الطائفي","نواف نائف الصليلي","وهاج أحمد شرقي","يوسف تيسير الدوليبي"],
+3:["أحمد محمد بازرعه","أحمد يحيى عبسى","أسامه رمزي صالح","أسامه هاني عبده","إياد علي الناشري","جعفر محمد السقاف","جواد حسام السلمي","جواد يحيى عطيف","حسام عدنان الكاف","حسين سالم بالخير","خالد علي القرني","خالد عماد العطاس","ريان سهيل باسهيل","سامر هاني الشطيري","عبدالرحمن صالح العطاس","عبدالرحمن نزار باعوافي","عبدالعزيز حسن سعيد","عبدالله أحمد بارشيد","عبدالله سامي زغفي","علي إبراهيم الحربي","عمر حاتم القشاش","عوام عبدالرحمن السيالي","كريم عصام أبوزور","كريم مرهف شما","لؤي حمود السبيعي","مؤيد أحمد بيني","محمد جمال الزهراني","ميار وائل سعد","وسام أحمد العبسي","يزن بلال سليمان","يزن خالد فكي","يزن عمر الصدفاء","يونس عويض الزهراني"],
+4:["أحمد حمود درّاج","أحمد سعيد بالبيد","المؤيد بسام سخنيني","أمير هاشل القرني","أمير وائل صالح","تامر منصور حكمي","تميم سعد السلمي","تميم محمد التميمي","خالد عبدالرحمن الصعب","خالد محمد العبدي","زياد وليد باقبص","سعود خالد القرشي","سعود محمد المطيري","سلام عابد اللحياني","صالح سالم الزهراني","عبدالرحمن علي الزهراني","عبدالرحمن هاني ناجي","عبدالعزيز خالد الزهراني","عبدالعزيز علي العلي","علي عبدالله بامطرف","عمار عبدالعزيز دويد","عمر سليم جاموس","عمران عمار حمو","فواز محمد السبيعي","قصي بن طلال بن نقلي","كنان بن محمد آل خصفان القرني","محمد شادي غبون","محمد عبدالعزيز دويد","محمد علي عتين","محمد يحيى حمدي","مراد عباس مشيم","مشعل محمد اللقماني","مهند سامي الحربي","مهند عبدالمنعم البيشي","يزن آدم الصبياني"],
+5:["إبراهيم عبد الفتاح محمد","أحمد جهاد العطاس","أحمد هيثم حمدون","أنس أحمد الحارثي","بتال عبدالله السهلي","جسار عبدالله الزهراني","حارث هلال الحارثي","حمزه محمد العطاس","خالد عبدالرحمن محمد علي ملا","خالد محمد القطروس","خلدون توفيق سيف","رائد فتيني مجهص","رامي صالح صبياني","رياض لطف المطحني","ريان أيمن العكبري","سالم نايف النهدي","سعد صابر فريد","سعيد عبدالله باقفة","سلطان عادل الجفري","سيف عادل بامنصور","عبدالرحمن عبدالعزيز أفضل","عبدالرحمن عبدالله الشهري","عبدالرحيم حسن المهجوس","عبدالعزيز أحمد بارحيم","عساف رضي المحوري","علي عسكر آل سعد","فهد عبدالعزيز الزهراني","فهد هاشم الظاهري","محمد عبدالرحمن الزهراني","معين مهران الزهارنة","يزن علاء باكريم","يوسف محمد غزواني"],
+6:["إبراهيم محسن باجابر","أحمد سعدي سرداح","أديب مشعل الشائع","أوس عبدالرحمن عسيري","حيدر ناصر فرحان","خالد وليد التميمي","رامي نافذ البنا","زياد ياسر السلمي","عبدالرحمن نواف السالمي","عبدالله عائض الحربي","عبدالمجيد حسين العمودي","فراس محمد القرني","فهد سالم باحسن","فهد محمد الزهراني","فيصل حاتم زعرب","فيصل فايز حلواني","قيس أحمد مبارك","ليث تامر الأمير","ماجد صالح الصحفي","مؤيد أحمد السقاف","مؤيد عثمان العمودي","محمد أحمد بازهير","محمد رائد أبوالزوائد","محمد عادل باجندوح","محمد عبدالله الهدار","معاذ عمار الخطيب","ميادي وليد المحوري","نايف أحمد حميد","هاشم محمد العمري","وسام علي الجهني","يامن عبدالباري بطيلي","يزن محمد الزهراني","يوسف خالد الصلاحي","يوسف سعد الحاج عمير","يوسف هاشم الكاف"]
+};
+
+const PROJECTS=[
+  {key:'p1', ar:'المشروع الأول',   en:'Project 1'},
+  {key:'p2', ar:'المشروع الثاني',  en:'Project 2'},
+  {key:'p3', ar:'المشروع الثالث',  en:'Project 3'}
+];
+const RATINGS=['unmarked','acceptable','brilliant','masterpiece'];
+const RATING_AR={acceptable:'مقبول',brilliant:'ممتاز',masterpiece:'تحفة فنية'};
+const RATING_EN={acceptable:'Acceptable',brilliant:'Brilliant',masterpiece:'Masterpiece'};
+const RATING_ICON={unmarked:'?',acceptable:'✓',brilliant:'⭐',masterpiece:'🏆'};
+const DAYS=[
+  {val:0, ar:'الأحد',   en:'Sunday'},
+  {val:1, ar:'الإثنين',  en:'Monday'},
+  {val:2, ar:'الثلاثاء', en:'Tuesday'},
+  {val:3, ar:'الأربعاء', en:'Wednesday'},
+  {val:4, ar:'الخميس',   en:'Thursday'}
+];
+const DAY_SHORT=['Sun','Mon','Tue','Wed','Thu'];
+const S_CYCLE=['unmarked','present','absent','excused'];
+const S_AR={present:'حاضر',absent:'غائب',excused:'معفى'};
+const S_EN={present:'Present',absent:'Absent',excused:'Excused'};
+const S_ICON={unmarked:'?',present:'✓',absent:'✗',excused:'~'};
+const CORRECT_PIN='#1984#';
+
+let curClass=1,curWeek=1,curDay=0;
+let teacherTab='att',marksTab='proj',curProj=0;
+let pinInput='',pinLocked=false,mode='student',lang='ar';
+
+// ============================================================
+// INIT
+// ============================================================
+(function init(){
+  // class tabs
+  const ct=document.getElementById('class-tabs');
+  for(let i=1;i<=6;i++){
+    const b=document.createElement('button');
+    b.className='c-tab'+(i===1?' active':'');
+    b.id='ctab-'+i;
+    b.onclick=()=>switchClass(i);
+    ct.appendChild(b);
+  }
+  // week selector
+  const sw=document.getElementById('sel-week');
+  for(let w=1;w<=15;w++) sw.innerHTML+=`<option value="${w}" data-ar="الأسبوع ${w}" data-en="Week ${w}">الأسبوع ${w}</option>`;
+  // day selector
+  const sd=document.getElementById('sel-day');
+  DAYS.forEach(d=> sd.innerHTML+=`<option value="${d.val}" data-ar="${d.ar}" data-en="${d.en}">${d.ar}</option>`);
+  // project selector
+  const sp=document.getElementById('sel-proj');
+  PROJECTS.forEach((p,i)=> sp.innerHTML+=`<option value="${i}" data-ar="${p.ar}" data-en="${p.en}">${p.ar}</option>`);
+  // history week selector
+  const shw=document.getElementById('sel-hist-week');
+  shw.innerHTML=`<option value="all" data-ar="كل الأسابيع" data-en="All Weeks">كل الأسابيع</option>`;
+  for(let w=1;w<=15;w++) shw.innerHTML+=`<option value="${w}" data-ar="الأسبوع ${w}" data-en="Week ${w}">الأسبوع ${w}</option>`;
+  // student class selector
+  const ssc=document.getElementById('sel-s-class');
+  ssc.innerHTML=`<option value="" data-ar="اختر فصلك" data-en="Select Class">اختر فصلك</option>`;
+  for(let i=1;i<=6;i++) ssc.innerHTML+=`<option value="${i}" data-ar="المتوسط ${i}" data-en="Grade ${i}">المتوسط ${i}</option>`;
+  // student name selector
+  document.getElementById('sel-s-name').innerHTML=`<option value="" data-ar="اختر اسمك" data-en="Select Name">اختر اسمك</option>`;
+
+  applyLang('ar');
+  initFirebase();
+})();
+
+// ============================================================
+// LANG
+// ============================================================
+function setLang(l){
+  lang=l;
+  document.getElementById('lbtn-ar').classList.toggle('active',l==='ar');
+  document.getElementById('lbtn-en').classList.toggle('active',l==='en');
+  document.getElementById('root').setAttribute('dir',l==='en'?'ltr':'rtl');
+  document.getElementById('root').setAttribute('lang',l);
+  applyLang(l);
+  renderActive();
+  if(mode==='student'){
+    const cls=document.getElementById('sel-s-class').value;
+    const idx=document.getElementById('sel-s-name').value;
+    if(cls&&idx!=='') showStudentProgress();
+    else onSClassSelect();
+  }
+}
+
+// Update every element that has data-ar / data-en
+function applyLang(l){
+  const k=l==='en'?'en':'ar';
+  // header
+  document.getElementById('header-title').textContent=l==='en'?'📚 Mr.Riyadh Progress Record':'📚 سجل متابعة استاذ رياض';
+  // all static data-ar/data-en elements
+  document.querySelectorAll('[data-ar]').forEach(el=>{
+    el.textContent=el.dataset[k];
+  });
+  // class tab buttons (dynamic, no data attrs yet)
+  for(let i=1;i<=6;i++){
+    const b=document.getElementById('ctab-'+i);
+    if(b) b.textContent=l==='en'?'Grade '+i:'المتوسط '+i;
+  }
+  // all <option> elements with data attrs
+  document.querySelectorAll('option[data-ar]').forEach(el=>{
+    el.textContent=el.dataset[k];
+  });
+  // legend (rebuild)
+  renderLegend();
+}
+
+function renderLegend(){
+  const L=lang==='en';
+  document.getElementById('legend').innerHTML=
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>${L?'Present':'حاضر'}</div>`+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>${L?'Absent':'غائب'}</div>`+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>${L?'Excused':'معفى'}</div>`+
+    `<div class="legend-item"><div class="legend-dot" style="background:#e2e8f0"></div>${L?'Unmarked':'غير محدد'}</div>`;
+}
+
+// ============================================================
+// PIN
+// ============================================================
+function requestTeacher(){
+  pinInput='';pinLocked=false;updatePinDots();
+  document.getElementById('pin-error').textContent='';
+  document.getElementById('pin-overlay').classList.add('show');
+}
+function closePinModal(){document.getElementById('pin-overlay').classList.remove('show')}
+function pinPress(c){
+  if(pinLocked) return;
+  pinInput+=c;updatePinDots();
+  if(pinInput.length>=CORRECT_PIN.length){
+    if(pinInput===CORRECT_PIN){closePinModal();setMode('teacher')}
+    else{
+      pinLocked=true;
+      document.querySelectorAll('.pin-dot').forEach(d=>d.classList.add('error'));
+      document.getElementById('pin-error').textContent=lang==='ar'?'رقم التعريف غير صحيح ✕':'Incorrect PIN ✕';
+      setTimeout(()=>{pinLocked=false;pinInput='';document.querySelectorAll('.pin-dot').forEach(d=>{d.classList.remove('error','filled')});document.getElementById('pin-error').textContent=''},1400);
+    }
+  }
+}
+function pinBack(){if(!pinLocked){pinInput=pinInput.slice(0,-1);updatePinDots()}}
+function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.classList.toggle('filled',i<pinInput.length);d.classList.remove('error')})}
+
+// ============================================================
+// MODE
+// ============================================================
+function setMode(m){
+  mode=m;
+  document.getElementById('teacher-mode').classList.toggle('hidden',m!=='teacher');
+  document.getElementById('student-mode').classList.toggle('hidden',m!=='student');
+  document.getElementById('btn-teacher').classList.toggle('active',m==='teacher');
+  document.getElementById('btn-student').classList.toggle('active',m==='student');
+  if(m==='teacher') renderActive();
+}
+function switchClass(n){
+  curClass=n;
+  for(let i=1;i<=6;i++) document.getElementById('ctab-'+i).classList.toggle('active',i===n);
+  renderActive();
+}
+function setTeacherTab(t){
+  teacherTab=t;
+  ['att','marks','hist','msg','str'].forEach(x=>{
+    document.getElementById('ttab-'+x).classList.toggle('active',x===t);
+    document.getElementById('tab-'+x).classList.toggle('hidden',x!==t);
+  });
+  renderActive();
+}
+function setMarksTab(t){
+  marksTab=t;
+  ['proj','hw'].forEach(x=>{
+    document.getElementById('mtab-'+x).classList.toggle('active',x===t);
+    document.getElementById('sub-'+x).classList.toggle('hidden',x!==t);
+  });
+  renderMarksActive();
+}
+function renderActive(){
+  if(teacherTab==='att') renderAtt();
+  else if(teacherTab==='marks') renderMarksActive();
+  else if(teacherTab==='hist') renderHistory();
+  else if(teacherTab==='msg') renderMessages();
+  else if(teacherTab==='str') renderStrikes();
+}
+function renderMarksActive(){
+  if(marksTab==='proj') renderProjects();
+  else renderHW();
+}
+
+// ============================================================
+// STORAGE (Firebase + in-memory cache)
+// ============================================================
+function getAtt(cls,w,d){ return DB.att[`${cls}_${w}_${d}`] || {}; }
+function setAttVal(cls,w,d,idx,status){
+  const key=`${cls}_${w}_${d}`;
+  if(!DB.att[key]) DB.att[key]={};
+  status==='unmarked' ? delete DB.att[key][idx] : (DB.att[key][idx]=status);
+  db.ref('att/'+key).set(Object.keys(DB.att[key]).length ? DB.att[key] : null);
+}
+function getProjects(cls){ return DB.projs[cls] || {}; }
+function setProjScore(cls,idx,pKey,score){
+  if(!DB.projs[cls]) DB.projs[cls]={};
+  if(!DB.projs[cls][idx]) DB.projs[cls][idx]={};
+  score==='' ? delete DB.projs[cls][idx][pKey] : (DB.projs[cls][idx][pKey]=score);
+  if(!Object.keys(DB.projs[cls][idx]).length) delete DB.projs[cls][idx];
+  db.ref('projs/'+cls).set(Object.keys(DB.projs[cls]).length ? DB.projs[cls] : null);
+}
+function getHW(cls){ return DB.hw[cls] || {}; }
+function setHWVal(cls,idx,val){
+  if(!DB.hw[cls]) DB.hw[cls]={};
+  val ? (DB.hw[cls][idx]=true) : delete DB.hw[cls][idx];
+  db.ref('hw/'+cls).set(Object.keys(DB.hw[cls]).length ? DB.hw[cls] : null);
+}
+function getMessages(){ return DB.msgs; }
+function saveMessages(arr){ DB.msgs=arr; db.ref('msgs').set(arr.length ? arr : null); }
+function getStrikes(cls){ return DB.str[cls] || {}; }
+function saveStrikes(cls,data){ DB.str[cls]=data; db.ref('str/'+cls).set(Object.keys(data).length ? data : null); }
+
+// ============================================================
+// HELPERS
+// ============================================================
+function sLabel(s){return lang==='en'?S_EN[s]:S_AR[s]}
+function rLabel(r){return lang==='en'?(RATING_EN[r]||'—'):(RATING_AR[r]||'—')}
+function bi(obj){return lang==='en'?obj.en:obj.ar}
+
+// ============================================================
+// RENDER ATTENDANCE
+// ============================================================
+function renderAtt(){
+  const students=C[curClass];
+  const att=getAtt(curClass,curWeek,curDay);
+  let cnt={present:0,absent:0,excused:0,unmarked:0};
+  let rows='';
+  students.forEach((name,i)=>{
+    const s=att[i]||'unmarked';cnt[s]++;
+    rows+=`<tr><td class="td-num">${i+1}</td><td class="td-name">${name}</td><td><button class="att-btn ${s}" onclick="toggleAtt(${i})">${S_ICON[s]}</button></td></tr>`;
+  });
+  document.getElementById('att-body').innerHTML=rows;
+  const L=lang==='en';
+  document.getElementById('stats').innerHTML=
+    `<div class="stat-card"><div class="num" style="color:var(--green)">${cnt.present}</div><div class="lbl">${L?'Present':'حاضر'}</div></div>`+
+    `<div class="stat-card"><div class="num" style="color:var(--red)">${cnt.absent}</div><div class="lbl">${L?'Absent':'غائب'}</div></div>`+
+    `<div class="stat-card"><div class="num" style="color:var(--amber)">${cnt.excused}</div><div class="lbl">${L?'Excused':'معفى'}</div></div>`+
+    `<div class="stat-card"><div class="num" style="color:var(--slate)">${cnt.unmarked}</div><div class="lbl">${L?'Unmarked':'غير محدد'}</div></div>`+
+    `<div class="stat-card"><div class="num" style="color:var(--teal)">${students.length}</div><div class="lbl">${L?'Total':'المجموع'}</div></div>`;
+}
+function toggleAtt(idx){
+  const att=getAtt(curClass,curWeek,curDay);
+  const cur=att[idx]||'unmarked';
+  const next=S_CYCLE[(S_CYCLE.indexOf(cur)+1)%S_CYCLE.length];
+  setAttVal(curClass,curWeek,curDay,idx,next);renderAtt();
+}
+function markAll(status){C[curClass].forEach((_,i)=>setAttVal(curClass,curWeek,curDay,i,status));renderAtt()}
+function clearDay(){
+  const key=`${curClass}_${curWeek}_${curDay}`;
+  DB.att[key]={};
+  db.ref('att/'+key).set(null);
+  renderAtt();
+}
+
+// ============================================================
+// PROJECTS (Rating: Acceptable / Brilliant / Masterpiece)
+// ============================================================
+function renderProjects(){
+  curProj=+document.getElementById('sel-proj').value;
+  const proj=PROJECTS[curProj];
+  const data=getProjects(curClass);
+  const L=lang==='en';
+  let rows='';
+  C[curClass].forEach((name,i)=>{
+    const val=(data[i]&&data[i][proj.key])||'unmarked';
+    const label=val==='unmarked'?(L?'— Tap to rate':'— اضغط للتقييم'):rLabel(val);
+    rows+=`<tr><td class="td-num">${i+1}</td><td class="td-name">${name}</td><td><button class="rating-btn ${val}" onclick="cycleRating(${i})">${RATING_ICON[val]} ${label}</button></td></tr>`;
+  });
+  document.getElementById('proj-body').innerHTML=rows;
+}
+function cycleRating(idx){
+  const proj=PROJECTS[curProj];
+  const data=getProjects(curClass);
+  const cur=(data[idx]&&data[idx][proj.key])||'unmarked';
+  const next=RATINGS[(RATINGS.indexOf(cur)+1)%RATINGS.length];
+  setProjScore(curClass,idx,proj.key,next==='unmarked'?'':next);
+  renderProjects();
+}
+
+// ============================================================
+// HOMEWORK
+// ============================================================
+function renderHW(){
+  const hw=getHW(curClass);
+  let rows='';
+  C[curClass].forEach((name,i)=>{
+    rows+=`<tr><td class="td-num">${i+1}</td><td class="td-name">${name}</td><td><input type="checkbox" class="hw-check" ${hw[i]?'checked':''} onchange="setHWVal(${curClass},${i},this.checked)"></td></tr>`;
+  });
+  document.getElementById('hw-body').innerHTML=rows;
+}
+
+// ============================================================
+// HISTORY
+// ============================================================
+function renderHistory(){
+  const filter=document.getElementById('sel-hist-week').value;
+  const weeks=filter==='all'?Array.from({length:15},(_,i)=>i+1):[+filter];
+  const L=lang==='en';
+  let html='';
+  weeks.forEach(w=>{
+    DAYS.forEach(d=>{
+      const att=getAtt(curClass,w,d.val);
+      const entries=Object.entries(att);
+      if(!entries.length) return;
+      html+=`<div class="hist-date-header">${L?'Week '+w+' — '+d.en:'الأسبوع '+w+' — '+d.ar}</div>`;
+      entries.forEach(([idx,status])=>{
+        html+=`<div class="hist-row"><span class="hist-badge ${status}">${sLabel(status)}</span><span style="flex:1">${C[curClass][idx]||'?'}</span></div>`;
+      });
+    });
+  });
+  document.getElementById('history-wrap').innerHTML=html||
+    `<div style="text-align:center;color:var(--slate);padding:28px 0;font-size:.80rem">${L?'No attendance records yet':'لا يوجد سجل حضور مسجل بعد'}</div>`;
+}
+
+// ============================================================
+// STUDENT MODE
+// ============================================================
+function onSClassSelect(){
+  const cls=document.getElementById('sel-s-class').value;
+  const sel=document.getElementById('sel-s-name');
+  const L=lang==='en';
+  sel.innerHTML=`<option value="" data-ar="اختر اسمك" data-en="Select Name">${L?'Select Name':'اختر اسمك'}</option>`;
+  if(cls&&C[cls]) C[cls].forEach((n,i)=> sel.innerHTML+=`<option value="${i}">${n}</option>`);
+  document.getElementById('student-progress').innerHTML='';
+}
+
+function showStudentProgress(){
+  const cls=document.getElementById('sel-s-class').value;
+  const idx=document.getElementById('sel-s-name').value;
+  const el=document.getElementById('student-progress');
+  if(!cls||idx===''){el.innerHTML='';return}
+  const i=+idx;const L=lang==='en';
+
+  // ATTENDANCE
+  let present=0,absent=0,excused=0,total=0;
+  let attGrid='';
+  for(let w=1;w<=15;w++){
+    attGrid+=`<div class="att-week-label">${L?'Week '+w:'الأسبوع '+w}</div>`;
+    DAYS.forEach((d,di)=>{
+      const att=getAtt(cls,w,d.val);
+      const s=att[i]||null;
+      if(s){total++;if(s==='present')present++;else if(s==='absent')absent++;else excused++;}
+      attGrid+=`<div class="att-cell ${s||'empty'}"><div class="cell-day">${DAY_SHORT[di]}</div><div class="cell-status">${s?sLabel(s):'—'}</div></div>`;
+    });
+  }
+  const attPct=total?Math.round((present/total)*100):0;
+  const attColor=attPct>=80?'var(--green)':attPct>=60?'var(--amber)':'var(--red)';
+
+  // PROJECTS
+  const projs=getProjects(cls);
+  let projRows='',projRated=0,projTotal=0,mpc=0,bc=0,ac=0;
+  PROJECTS.forEach(p=>{
+    const rating=(projs[i]&&projs[i][p.key])||null;
+    projTotal++;
+    if(rating){projRated++;if(rating==='masterpiece')mpc++;else if(rating==='brilliant')bc++;else ac++;}
+    projRows+=`<div class="score-row"><span class="s-label">${L?p.en:p.ar}</span><span class="rating-badge ${rating||'pending'}">${rating?RATING_ICON[rating]+' ':''} ${rating?rLabel(rating):(L?'Not yet':'لم يسجل بعد')}</span></div>`;
+  });
+
+  // HOMEWORK
+  const hw=getHW(cls);const hwDone=!!hw[i];
+
+  el.innerHTML=`
+    <div class="prog-section">
+      <h3>📋 ${L?'Attendance — 15 Weeks':'الحضور — 15 أسبوع'}</h3>
+      <div style="display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-bottom:9px">
+        <div class="stat-card"><div class="num" style="color:var(--green)">${present}</div><div class="lbl">${L?'Present':'حاضر'}</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--red)">${absent}</div><div class="lbl">${L?'Absent':'غائب'}</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--amber)">${excused}</div><div class="lbl">${L?'Excused':'معفى'}</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--teal)">${attPct}%</div><div class="lbl">${L?'Rate':'النسبة'}</div></div>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${attPct}%;background:${attColor}"></div></div>
+        <div class="prog-pct">${attPct}% ${L?'Attendance Rate':'نسبة الحضور'}</div>
+      </div>
+      <div class="att-grid" style="margin-top:14px">${attGrid}</div>
+    </div>
+
+    <div class="prog-section">
+      <h3>🏆 ${L?'Projects':'المشاريع'}</h3>
+      ${projRows}
+      <div style="display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:12px">
+        ${mpc?`<div class="stat-card"><div class="num" style="color:#854d0e">🏆 ${mpc}</div><div class="lbl">${L?'Masterpiece':'تحفة فنية'}</div></div>`:''}
+        ${bc?`<div class="stat-card"><div class="num" style="color:var(--blue)">⭐ ${bc}</div><div class="lbl">${L?'Brilliant':'ممتاز'}</div></div>`:''}
+        ${ac?`<div class="stat-card"><div class="num" style="color:var(--amber)">✓ ${ac}</div><div class="lbl">${L?'Acceptable':'مقبول'}</div></div>`:''}
+        <div class="stat-card"><div class="num" style="color:var(--slate)">${projRated}/${projTotal}</div><div class="lbl">${L?'Rated':'مقيّم'}</div></div>
+      </div>
+    </div>
+
+    <div class="prog-section">
+      <h3>📓 ${L?'Homework':'الواجب'}</h3>
+      <div style="text-align:center;padding:10px 0">
+        <div class="hw-badge ${hwDone?'done':'pending'}">
+          ${hwDone?(L?'✓ Homework Submitted':'✓ تم تسليم الواجب'):(L?'✕ Not Submitted Yet':'✕ الواجب لم يسلَّم بعد')}
+        </div>
+      </div>
+    </div>
+
+    <!-- MESSAGES (student view) -->
+    ${(function(){
+      const msgs=getMessages();
+      if(!msgs.length) return '';
+      let h=`<div class="prog-section"><h3>💬 ${L?'Teacher Messages':'رسائل الأستاذ'}</h3>`;
+      msgs.forEach(m=>{
+        h+=`<div class="msg-card">
+          <div class="msg-time">${formatTime(m.time)}</div>
+          <div class="msg-text">${escHtml(m.text)}</div>
+        </div>`;
+      });
+      h+='</div>';
+      return h;
+    })()}
+
+    <!-- STRIKES (student view) -->
+    ${(function(){
+      const strikes=getStrikes(cls);
+      const myStrikes=strikes[i]||[];
+      if(!myStrikes.length) return '';
+      let h=`<div class="prog-section"><h3>⚠️ ${L?'Strikes':'المخالفات'}</h3>`;
+      h+=`<div style="text-align:center;margin-bottom:10px"><span class="strike-badge">${myStrikes.length} ${L?'Strike'+(myStrikes.length>1?'s':''):'مخالفة'+(myStrikes.length>1?' ':'')}</span></div>`;
+      myStrikes.forEach((s,idx)=>{
+        h+=`<div class="strike-item"><span class="strike-num">${idx+1}</span><span class="strike-date">${formatTime(s.time)}</span></div>`;
+      });
+      h+='</div>';
+      return h;
+    })()}`;
+}
+
+// ============================================================
+// MESSAGES
+// ============================================================
+
+function sendMessage(){
+  const inp=document.getElementById('msg-input');
+  const txt=inp.value.trim();
+  if(!txt) return;
+  const msgs=getMessages();
+  msgs.unshift({text:txt, time:Date.now()});
+  saveMessages(msgs);
+  inp.value='';
+  renderMessages();
+}
+
+function deleteMessage(idx){
+  const msgs=getMessages();
+  msgs.splice(idx,1);
+  saveMessages(msgs);
+  renderMessages();
+}
+
+function renderMessages(){
+  const msgs=getMessages();
+  const L=lang==='en';
+  // update placeholder
+  const inp=document.getElementById('msg-input');
+  inp.placeholder=L?'Write a message for students…':'اكتب رسالة للطلاب…';
+
+  let html='';
+  if(!msgs.length){
+    html=`<div style="text-align:center;color:var(--slate);padding:28px 0;font-size:.80rem">${L?'No messages yet':'لا رسائل بعد'}</div>`;
+  } else {
+    msgs.forEach((m,idx)=>{
+      html+=`<div class="msg-card">
+        <div class="msg-card-head">
+          <span class="msg-time">${formatTime(m.time)}</span>
+          <button class="msg-delete" onclick="deleteMessage(${idx})">🗑</button>
+        </div>
+        <div class="msg-text">${escHtml(m.text)}</div>
+      </div>`;
+    });
+  }
+  document.getElementById('msg-list').innerHTML=html;
+}
+
+// ============================================================
+// STRIKES
+// ============================================================
+
+function addStrike(idx){
+  const data=getStrikes(curClass);
+  if(!data[idx]) data[idx]=[];
+  data[idx].push({time:Date.now()});
+  saveStrikes(curClass,data);
+  renderStrikes();
+}
+
+function removeStrike(idx){
+  const data=getStrikes(curClass);
+  if(data[idx]&&data[idx].length) data[idx].pop();
+  if(data[idx]&&!data[idx].length) delete data[idx];
+  saveStrikes(curClass,data);
+  renderStrikes();
+}
+
+function renderStrikes(){
+  const data=getStrikes(curClass);
+  const L=lang==='en';
+  let totalStrikes=0;
+  Object.values(data).forEach(arr=> totalStrikes+=arr.length);
+
+  // info bar
+  document.getElementById('str-info').innerHTML=
+    `<div class="str-info-bar">
+      <span class="str-info-total" style="color:var(--red)">⚠️ ${totalStrikes}</span>
+      <span class="str-info-label">${L?'Total Strikes':'إجمالي المخالفات'}</span>
+    </div>`;
+
+  let rows='';
+  C[curClass].forEach((name,i)=>{
+    const count=(data[i]&&data[i].length)||0;
+    rows+=`<tr>
+      <td class="td-num">${i+1}</td>
+      <td class="td-name">${name}</td>
+      <td><span class="strike-count ${count>0?'has-strikes':''}">${count}</span></td>
+      <td>
+        <div class="str-btns">
+          <button class="str-btn str-add" onclick="addStrike(${i})">+</button>
+          ${count>0?`<button class="str-btn str-rem" onclick="removeStrike(${i})">−</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  });
+  document.getElementById('str-body').innerHTML=rows;
+}
+
+// ============================================================
+// SHARED HELPERS
+// ============================================================
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function formatTime(ts){
+  const d=new Date(ts);
+  const L=lang==='en';
+  const day=L?['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][d.getDay()];
+  const mon=L?['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]:['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'][d.getMonth()];
+  return `${day}, ${d.getDate()} ${mon} — ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportData(){
+  const out = { att: DB.att, projs: DB.projs, hw: DB.hw, msgs: DB.msgs, str: DB.str };
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data.json';a.click();URL.revokeObjectURL(a.href);
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      // push everything to Firebase (overwrites)
+      const updates={};
+      if(data.att) { DB.att=data.att; Object.keys(data.att).forEach(k=> updates['att/'+k]=data.att[k]); }
+      if(data.projs) { DB.projs=data.projs; Object.keys(data.projs).forEach(k=> updates['projs/'+k]=data.projs[k]); }
+      if(data.hw) { DB.hw=data.hw; Object.keys(data.hw).forEach(k=> updates['hw/'+k]=data.hw[k]); }
+      if(data.msgs) { DB.msgs=data.msgs; updates['msgs']=data.msgs; }
+      if(data.str) { DB.str=data.str; Object.keys(data.str).forEach(k=> updates['str/'+k]=data.str[k]); }
+      db.ref().update(updates);
+      renderActive();
+      alert(lang==='en'?'✓ Data imported successfully!':'✓ تم استيراد البيانات بنجاح!');
+    }catch(err){alert(lang==='en'?'✗ Import error':'✗ خطأ في الاستيراد')}
+  };
+  reader.readAsText(file);e.target.value='';
+}
+
+// ============================================================
+// FIREBASE SYNC — load all data, then start listeners
+// ============================================================
+function initFirebase(){
+  db.ref().once('value', function(snap){
+    const raw = snap.val() || {};
+    // attendance
+    if(raw.att) Object.keys(raw.att).forEach(k=> DB.att[k]=raw.att[k]);
+    // projects
+    if(raw.projs) Object.keys(raw.projs).forEach(k=> DB.projs[k]=raw.projs[k]);
+    // homework
+    if(raw.hw) Object.keys(raw.hw).forEach(k=> DB.hw[k]=raw.hw[k]);
+    // messages
+    if(raw.msgs) DB.msgs = Array.isArray(raw.msgs) ? raw.msgs : Object.values(raw.msgs);
+    // strikes
+    if(raw.str) Object.keys(raw.str).forEach(k=> {
+      const val=raw.str[k];
+      // Firebase converts arrays to objects — convert back
+      if(val && typeof val==='object'){
+        Object.keys(val).forEach(idx=>{
+          if(Array.isArray(val[idx])) return; // already array
+          if(val[idx] && typeof val[idx]==='object' && !Array.isArray(val[idx])){
+            val[idx]=Object.values(val[idx]);
+          }
+        });
+      }
+      DB.str[k]=val;
+    });
+
+    // hide loading, show app
+    document.getElementById('loading-overlay').style.display='none';
+    renderActive();
+
+    // Live listeners for real-time updates from other devices
+    db.ref('att').on('value', function(s){
+      const v=s.val()||{};
+      DB.att=v;
+      if(mode==='teacher'&&teacherTab==='att') renderAtt();
+      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
+    });
+    db.ref('projs').on('value', function(s){
+      DB.projs=s.val()||{};
+      if(mode==='teacher'&&teacherTab==='marks'&&marksTab==='proj') renderProjects();
+      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
+    });
+    db.ref('hw').on('value', function(s){
+      DB.hw=s.val()||{};
+      if(mode==='teacher'&&teacherTab==='marks'&&marksTab==='hw') renderHW();
+      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
+    });
+    db.ref('msgs').on('value', function(s){
+      const v=s.val();
+      DB.msgs = v ? (Array.isArray(v)?v:Object.values(v)) : [];
+      if(mode==='teacher'&&teacherTab==='msg') renderMessages();
+      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
+    });
+    db.ref('str').on('value', function(s){
+      const raw=s.val()||{};
+      Object.keys(raw).forEach(k=>{
+        const val=raw[k];
+        if(val&&typeof val==='object'){
+          Object.keys(val).forEach(idx=>{
+            if(val[idx]&&typeof val[idx]==='object'&&!Array.isArray(val[idx])) val[idx]=Object.values(val[idx]);
+          });
+        }
+        DB.str[k]=val;
+      });
+      if(mode==='teacher'&&teacherTab==='str') renderStrikes();
+      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
+    });
+  }).catch(function(err){
+    console.error('Firebase load error',err);
+    document.getElementById('load-txt').textContent='❌ Connection error. Check your internet.';
+  });
+}
+
+</script>
+</body>
+</html>
