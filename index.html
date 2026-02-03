@@ -1064,78 +1064,67 @@ function importData(e){
 }
 
 // ============================================================
-// FIREBASE SYNC — load all data, then start listeners
+// FIREBASE SYNC — live listeners handle everything
 // ============================================================
-function initFirebase(){
-  db.ref().once('value', function(snap){
-    const raw = snap.val() || {};
-    // attendance
-    if(raw.att) Object.keys(raw.att).forEach(k=> DB.att[k]=raw.att[k]);
-    // projects
-    if(raw.projs) Object.keys(raw.projs).forEach(k=> DB.projs[k]=raw.projs[k]);
-    // homework
-    if(raw.hw) Object.keys(raw.hw).forEach(k=> DB.hw[k]=raw.hw[k]);
-    // messages
-    if(raw.msgs) DB.msgs = Array.isArray(raw.msgs) ? raw.msgs : Object.values(raw.msgs);
-    // strikes
-    if(raw.str) Object.keys(raw.str).forEach(k=> {
-      const val=raw.str[k];
-      // Firebase converts arrays to objects — convert back
-      if(val && typeof val==='object'){
-        Object.keys(val).forEach(idx=>{
-          if(Array.isArray(val[idx])) return; // already array
-          if(val[idx] && typeof val[idx]==='object' && !Array.isArray(val[idx])){
-            val[idx]=Object.values(val[idx]);
-          }
-        });
-      }
-      DB.str[k]=val;
-    });
-
-    // hide loading, show app
+let loaded={att:false,projs:false,hw:false,msgs:false,str:false};
+function checkLoaded(){
+  if(loaded.att&&loaded.projs&&loaded.hw&&loaded.msgs&&loaded.str){
     document.getElementById('loading-overlay').style.display='none';
     renderActive();
-
-    // Live listeners for real-time updates from other devices
-    db.ref('att').on('value', function(s){
-      const v=s.val()||{};
-      DB.att=v;
-      if(mode==='teacher'&&teacherTab==='att') renderAtt();
-      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
-    });
-    db.ref('projs').on('value', function(s){
-      DB.projs=s.val()||{};
-      if(mode==='teacher'&&teacherTab==='marks'&&marksTab==='proj') renderProjects();
-      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
-    });
-    db.ref('hw').on('value', function(s){
-      DB.hw=s.val()||{};
-      if(mode==='teacher'&&teacherTab==='marks'&&marksTab==='hw') renderHW();
-      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
-    });
-    db.ref('msgs').on('value', function(s){
-      const v=s.val();
-      DB.msgs = v ? (Array.isArray(v)?v:Object.values(v)) : [];
-      if(mode==='teacher'&&teacherTab==='msg') renderMessages();
-      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
-    });
-    db.ref('str').on('value', function(s){
-      const raw=s.val()||{};
-      Object.keys(raw).forEach(k=>{
-        const val=raw[k];
-        if(val&&typeof val==='object'){
-          Object.keys(val).forEach(idx=>{
-            if(val[idx]&&typeof val[idx]==='object'&&!Array.isArray(val[idx])) val[idx]=Object.values(val[idx]);
-          });
-        }
-        DB.str[k]=val;
+  }
+}
+function refreshStudent(){
+  if(mode==='student'){
+    const c=document.getElementById('sel-s-class').value;
+    const n=document.getElementById('sel-s-name').value;
+    if(c&&n!=='') showStudentProgress();
+  }
+}
+function fixStrikes(raw){
+  const out={};
+  Object.keys(raw||{}).forEach(k=>{
+    const val=raw[k];
+    if(val&&typeof val==='object'){
+      Object.keys(val).forEach(idx=>{
+        if(val[idx]&&typeof val[idx]==='object'&&!Array.isArray(val[idx])) val[idx]=Object.values(val[idx]);
       });
-      if(mode==='teacher'&&teacherTab==='str') renderStrikes();
-      if(mode==='student') { const c=document.getElementById('sel-s-class').value; const n=document.getElementById('sel-s-name').value; if(c&&n!=='') showStudentProgress(); }
-    });
-  }).catch(function(err){
-    console.error('Firebase load error',err);
-    document.getElementById('load-txt').textContent='❌ Connection error. Check your internet.';
+    }
+    out[k]=val;
+  });
+  return out;
+}
+
+function initFirebase(){
+  db.ref('att').on('value', function(s){
+    DB.att=s.val()||{};
+    if(!loaded.att){loaded.att=true;checkLoaded();}
+    if(mode==='teacher'&&teacherTab==='att') renderAtt();
+    refreshStudent();
+  });
+  db.ref('projs').on('value', function(s){
+    DB.projs=s.val()||{};
+    if(!loaded.projs){loaded.projs=true;checkLoaded();}
+    if(mode==='teacher'&&teacherTab==='marks'&&marksTab==='proj') renderProjects();
+    refreshStudent();
+  });
+  db.ref('hw').on('value', function(s){
+    DB.hw=s.val()||{};
+    if(!loaded.hw){loaded.hw=true;checkLoaded();}
+    if(mode==='teacher'&&teacherTab==='marks'&&marksTab==='hw') renderHW();
+    refreshStudent();
+  });
+  db.ref('msgs').on('value', function(s){
+    const v=s.val();
+    DB.msgs=v?(Array.isArray(v)?v:Object.values(v)):[];
+    if(!loaded.msgs){loaded.msgs=true;checkLoaded();}
+    if(mode==='teacher'&&teacherTab==='msg') renderMessages();
+    refreshStudent();
+  });
+  db.ref('str').on('value', function(s){
+    DB.str=fixStrikes(s.val());
+    if(!loaded.str){loaded.str=true;checkLoaded();}
+    if(mode==='teacher'&&teacherTab==='str') renderStrikes();
+    refreshStudent();
   });
 }
 
