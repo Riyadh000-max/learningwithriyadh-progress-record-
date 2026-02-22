@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mr.Riyadh Progress Record</title>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -28,6 +30,10 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);min-height:100vh;colo
 .mode-btn:hover,.mode-btn.active{background:rgba(255,255,255,0.3)}
 .lang-btn{position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:.75rem;cursor:pointer;z-index:10;backdrop-filter:blur(4px);transition:background .2s}
 .lang-btn:hover{background:rgba(255,255,255,0.3)}
+.sync-status{position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:12px;font-size:.65rem;z-index:10}
+.sync-status.online{background:var(--green-bg);color:var(--green-txt)}
+.sync-status.offline{background:var(--red-bg);color:var(--red-txt)}
+.sync-status.syncing{background:var(--amber-bg);color:var(--amber-txt)}
 .container{max-width:600px;margin:0 auto;padding:0 12px 100px}
 .class-tabs{display:flex;gap:6px;padding:12px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .class-tab{flex-shrink:0;padding:8px 14px;border-radius:18px;border:none;background:var(--card);font-family:inherit;font-size:.78rem;cursor:pointer;box-shadow:var(--shadow);transition:all .2s;color:#475569}
@@ -38,7 +44,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);min-height:100vh;colo
 .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
 .date-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
 .date-row select,.date-row input{padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:.78rem;background:#fff}
-.date-row input[type="date"]{flex:1}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 .legend-item{display:flex;align-items:center;gap:4px;font-size:.68rem;color:#64748b}
 .legend-dot{width:12px;height:12px;border-radius:50%}
@@ -82,7 +87,6 @@ th{font-size:.70rem;color:#64748b;font-weight:500}
 .student-title{font-family:'Amiri',serif;font-size:1.1rem;text-align:center;margin-bottom:16px;color:var(--teal-d)}
 .prog-section{margin-bottom:20px}
 .prog-header{font-size:.80rem;font-weight:600;margin-bottom:10px;color:#334155;display:flex;align-items:center;gap:6px}
-.prog-subheader{font-size:.72rem;font-weight:500;margin:12px 0 8px;color:#64748b;padding-right:8px;border-right:3px solid var(--teal)}
 .prog-grid{display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
 .prog-cell{aspect-ratio:1;border-radius:4px;font-size:.5rem;display:flex;align-items:center;justify-content:center}
 .prog-cell.present{background:var(--green)}
@@ -97,10 +101,7 @@ th{font-size:.70rem;color:#64748b;font-weight:500}
 .prog-badge.pending{background:#e2e8f0;color:#64748b}
 .prog-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-top:6px}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-l));border-radius:4px;transition:width .3s}
-.export-row{display:flex;gap:8px;justify-content:center;margin-top:20px}
-.export-btn{padding:10px 16px;border:none;border-radius:10px;font-family:inherit;font-size:.75rem;cursor:pointer;transition:all .2s}
-.export-btn.teal{background:var(--teal);color:#fff}
-.export-btn.slate{background:#e2e8f0;color:#475569}
+.project-header{background:linear-gradient(90deg,var(--teal-50),transparent);padding:8px 12px;border-radius:8px;margin-bottom:8px;font-weight:600;font-size:.78rem;color:var(--teal-d)}
 .pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
 .pin-box{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:320px;text-align:center}
 .pin-title{font-family:'Amiri',serif;font-size:1.1rem;margin-bottom:6px;color:var(--teal-d)}
@@ -112,12 +113,22 @@ th{font-size:.70rem;color:#64748b;font-weight:500}
 .pin-btns .cancel{background:#e2e8f0;color:#475569}
 .pin-btns .submit{background:var(--teal);color:#fff}
 .pin-error{color:var(--red);font-size:.72rem;margin-top:8px}
-.project-header{background:linear-gradient(90deg,var(--teal-50),transparent);padding:8px 12px;border-radius:8px;margin-bottom:8px;font-weight:600;font-size:.78rem;color:var(--teal-d)}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:2000;flex-direction:column;gap:16px}
+.loading-spinner{width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:var(--teal);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:.85rem;color:#64748b}
 @media(max-width:400px){.header h1{font-size:1.4rem}.mode-btn{font-size:.68rem;padding:6px 10px}}
 </style>
 </head>
 <body>
+<div class="loading-overlay" id="loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-text"><span class="ar">جاري تحميل البيانات...</span><span class="en">Loading data...</span></div>
+</div>
+
 <button class="lang-btn" onclick="toggleLang()">EN</button>
+<div class="sync-status online" id="sync-status">● <span class="ar">متصل</span><span class="en">Online</span></div>
+
 <header class="header">
   <h1 id="header-title">📚 سجل متابعة استاذ رياض<br><span style="font-family:'Poppins',sans-serif;font-size:.52rem;opacity:.55;font-weight:400">Mr.Riyadh Progress Record</span></h1>
   <div class="sub" id="header-sub">مدرسة المروة المتوسطة · اللغة الإنجليزية<br><span style="font-family:'Poppins',sans-serif;font-size:.88em;opacity:.8">Al-Marwa Middle School · English</span></div>
@@ -195,11 +206,6 @@ th{font-size:.70rem;color:#64748b;font-weight:500}
     <div id="tab-hist" class="card hidden">
       <div id="history-content"></div>
     </div>
-
-    <div class="export-row">
-      <button class="export-btn teal" onclick="exportData()">💾 <span class="ar">تصدير</span><span class="en">Export</span></button>
-      <label class="export-btn slate"><input type="file" accept=".json" style="display:none" onchange="importData(event)">📂 <span class="ar">استيراد</span><span class="en">Import</span></label>
-    </div>
   </div>
 
   <!-- STUDENT MODE -->
@@ -231,6 +237,22 @@ th{font-size:.70rem;color:#64748b;font-weight:500}
 
 <script>
 // ============================================================
+// FIREBASE CONFIG
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyC9xG4MJtIbONhTMPBNpr16LA_pL4Er7QU",
+  authDomain: "riadh-tracker.firebaseapp.com",
+  databaseURL: "https://riadh-tracker-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "riadh-tracker",
+  storageBucket: "riadh-tracker.firebasestorage.app",
+  messagingSenderId: "642829998259",
+  appId: "1:642829998259:web:02683526c97bb675fa78c6"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ============================================================
 // DATA
 // ============================================================
 const C={
@@ -240,16 +262,6 @@ const C={
   4:["أحمد حمود درّاج","أحمد سعيد بالبيد","المؤيد بسام سخنيني","أمير هاشل القرني","أمير وائل صالح","تامر منصور حكمي","تميم سعد السلمي","تميم محمد التميمي","خالد عبدالرحمن الصعب","خالد محمد العبدي","زياد وليد باقبص","سعود خالد القرشي","سعود محمد المطيري","سلام عابد اللحياني","صالح سالم الزهراني","عبدالرحمن علي الزهراني","عبدالرحمن هاني ناجي","عبدالعزيز خالد الزهراني","عبدالعزيز علي العلي","علي عبدالله بامطرف","عمار عبدالعزيز دويد","عمر سليم جاموس","عمران عمار حمو","فواز محمد السبيعي","قصي بن طلال بن نقلي","كنان بن محمد آل خصفان القرني","محمد شادي غبون","محمد عبدالعزيز دويد","محمد علي عتين","محمد يحيى حمدي","مراد عباس مشيم","مشعل محمد اللقماني","مهند سامي الحربي","مهند عبدالمنعم البيشي","يزن آدم الصبياني"],
   5:["إبراهيم عبد الفتاح محمد","أحمد جهاد العطاس","أحمد هيثم حمدون","أنس أحمد الحارثي","أمير القرني","بتال عبدالله السهلي","جسار عبدالله الزهراني","حارث هلال الحارثي","حمزه محمد العطاس","خالد عبدالرحمن محمد علي ملا","خالد محمد القطروس","خلدون توفيق سيف","رائد فتيني مجهص","رامي صالح صبياني","رياض لطف المطحني","ريان أيمن العكبري","سالم نايف النهدي","سعد صابر فريد","سعد العولقي","سعيد عبدالله باقفة","سلطان عادل الجفري","سيف عادل بامنصور","عبدالرحمن عبدالعزيز أفضل","عبدالرحمن عبدالله الشهري","عبدالرحيم حسن المهجوس","عبدالعزيز أحمد بارحيم","عساف رضي المحوري","علي عسكر آل سعد","فهد عبدالعزيز الزهراني","فهد هاشم الظاهري","محمد عبدالرحمن الزهراني","معين مهران الزهارنة","يزن علاء باكريم","يوسف محمد غزواني","أحمد محمد بازرعه"],
   6:["إبراهيم محسن باجابر","أحمد سعدي سرداح","أديب مشعل الشائع","أوس عبدالرحمن عسيري","حيدر ناصر فرحان","خالد وليد التميمي","رامي نافذ البنا","زياد ياسر السلمي","عبدالرحمن نواف السالمي","عبدالله عائض الحربي","عبدالمجيد حسين العمودي","فراس محمد القرني","فهد سالم باحسن","فهد عبدالعزيز الزهراني","فيصل حاتم زعرب","فيصل فايز حلواني","قيس أحمد مبارك","ليث تامر الأمير","ماجد صالح الصحفي","مؤيد أحمد السقاف","مؤيد عثمان العمودي","محمد أحمد بازهير","محمد رائد أبوالزوائد","محمد عادل باجندوح","محمد عبدالله الهدار","معاذ عمار الخطيب","ميادي وليد المحوري","نايف أحمد حميد","هاشم محمد العمري","وسام علي الجهني","يامن عبدالباري بطيلي","يزن محمد الزهراني","يوسف خالد الصلاحي","يوسف سعد الحاج عمير","يوسف هاشم الكاف","فهد محمد الزهراني"]
-};
-
-// PART 1 OF PROJECT 1 COMPLETED STUDENTS (from email assignment)
-const PART1_COMPLETED = {
-  1: ["البراء عبدالغني المصباحي","أمير متعب الغامدي","أنس خالد باقيس","بسام أيمن الغامدي","تيم إياد أبو فول","ثامر أحمد الزهراني","راكان محمد العلياني","عبدالعزيز سلطان الأحمدي","عبدالله أحمد برعيه","عبدالله علي خشرم الشمري","فراس حيان الغفري","فيصل عبدالعزيز العمودي","محمد سليمان الزهراني","محمد ظافر العمري","ياسر محمد قاسم","يوسف طه جداوى"],
-  2: ["أسامه حمزة مراد","الوليد نادر باديي","أنس محمد باشماخ","أويس عبدالرحمن باحسين","تميم عبدالله البكري","توفيق الماحي حمد النيل","خالد عبدالله الثقفي","صالح محمد بانشوان","عبدالعزيز حسن العطاس","عبدالكريم مجد صوي","عمر محمد أبوعيران","كريم محمد أحمد ناصيف","محسن مطهر الفقيه","نواف نائف الصليلي","يوسف تيسير الدوليبي"],
-  3: ["أسامه رمزي صالح","أسامه هاني عبده","إياد علي الناشري","جواد حسام السلمي","حسام عدنان الكاف","حسين سالم بالخير","عبدالرحمن صالح العطاس","عبدالرحمن نزار باعوافي","عبدالعزيز حسن سعيد","عبدالله أحمد بارشيد","عبدالله سامي زغفي","عمر حاتم القشاش","كريم عصام أبوزور","كريم مرهف شما","لؤي حمود السبيعي","محمد جمال الزهراني","ميار وائل سعد","يزن بلال سليمان"],
-  4: ["أحمد سعيد بالبيد","تامر منصور حكمي","تميم محمد التميمي","خالد محمد العبدي","سعود محمد المطيري","صالح سالم الزهراني","عبدالرحمن هاني ناجي","علي عبدالله بامطرف","عمار عبدالعزيز دويد","عمر سليم جاموس","عمران عمار حمو","كنان بن محمد آل خصفان القرني","محمد عبدالعزيز دويد","محمد علي عتين","مراد عباس مشيم","يزن آدم الصبياني"],
-  5: ["إبراهيم عبد الفتاح محمد","أحمد جهاد العطاس","أحمد هيثم حمدون","أنس أحمد الحارثي","حارث هلال الحارثي","خالد عبدالرحمن محمد علي ملا","خالد محمد القطروس","خلدون توفيق سيف","رياض لطف المطحني","سالم نايف النهدي","سعيد عبدالله باقفة","سلطان عادل الجفري","سيف عادل بامنصور","عبدالعزيز أحمد بارحيم","عساف رضي المحوري","علي عسكر آل سعد","معين مهران الزهارنة"],
-  6: ["أحمد سعدي سرداح","أديب مشعل الشائع","رامي نافذ البنا","زياد ياسر السلمي","عبدالرحمن نواف السالمي","عبدالله عائض الحربي","فراس محمد القرني","فهد عبدالعزيز الزهراني","فيصل حاتم زعرب","فيصل فايز حلواني","قيس أحمد مبارك","ماجد صالح الصحفي","محمد أحمد بازهير","محمد رائد أبوالزوائد","محمد عادل باجندوح","محمد عبدالله الهدار","معاذ عمار الخطيب","ميادي وليد المحوري","نايف أحمد حميد","هاشم محمد العمري","وسام علي الجهني","يامن عبدالباري بطيلي","يزن محمد الزهراني","يوسف هاشم الكاف"]
 };
 
 // 3 PROJECTS, EACH WITH 3 PARTS
@@ -281,6 +293,64 @@ let curMarksTab='proj';
 let curProj=0;
 let curPart=0;
 let isTeacher=false;
+
+// Firebase data cache
+let attData = {};
+let hwData = {};
+let projData = {};
+
+// ============================================================
+// FIREBASE FUNCTIONS
+// ============================================================
+function setSyncStatus(status) {
+  const el = document.getElementById('sync-status');
+  el.className = 'sync-status ' + status;
+  const L = lang === 'en';
+  if (status === 'online') el.innerHTML = '● ' + (L ? 'Online' : 'متصل');
+  else if (status === 'offline') el.innerHTML = '○ ' + (L ? 'Offline' : 'غير متصل');
+  else el.innerHTML = '◌ ' + (L ? 'Syncing...' : 'جاري المزامنة...');
+}
+
+async function loadAllData() {
+  try {
+    setSyncStatus('syncing');
+    const snapshot = await db.ref('/').once('value');
+    const data = snapshot.val() || {};
+    attData = data.att || {};
+    hwData = data.hw || {};
+    projData = data.projs || {};
+    setSyncStatus('online');
+    document.getElementById('loading').classList.add('hidden');
+    render();
+  } catch (e) {
+    console.error('Load error:', e);
+    setSyncStatus('offline');
+    document.getElementById('loading').classList.add('hidden');
+  }
+}
+
+function getAttKey() { return `${curClass}_w${curWeek}_d${curDay}`; }
+function getAtt() { return attData[getAttKey()] || []; }
+function setAtt(arr) {
+  const key = getAttKey();
+  attData[key] = arr;
+  db.ref('att/' + key).set(arr);
+}
+
+function getHW(cls) { return hwData[cls] || []; }
+function setHWVal(cls, idx, val) {
+  if (!hwData[cls]) hwData[cls] = [];
+  hwData[cls][idx] = val;
+  db.ref('hw/' + cls).set(hwData[cls]);
+}
+
+function getProjects(cls) { return projData[cls] || {}; }
+function setProjVal(cls, idx, key, val) {
+  if (!projData[cls]) projData[cls] = {};
+  if (!projData[cls][idx]) projData[cls][idx] = {};
+  projData[cls][idx][key] = val;
+  db.ref('projs/' + cls + '/' + idx).set(projData[cls][idx]);
+}
 
 // ============================================================
 // INIT
@@ -336,36 +406,9 @@ let isTeacher=false;
     sc.appendChild(o);
   }
   
-  // Initialize Part 1 of Project 1 for completed students
-  initPart1Data();
-  
   applyLang();
-  render();
+  loadAllData();
 })();
-
-// Initialize Part 1 of Project 1 completion data
-function initPart1Data(){
-  const initialized = localStorage.getItem('proj1_part1_initialized_v2');
-  if(initialized) return;
-  
-  for(let cls=1;cls<=6;cls++){
-    const students = C[cls];
-    const completed = PART1_COMPLETED[cls] || [];
-    const data = getProjects(cls);
-    
-    students.forEach((name,idx)=>{
-      if(completed.includes(name)){
-        if(!data[idx]) data[idx]={};
-        // Key format: proj1_part1
-        data[idx]['proj1_part1']='acceptable';
-      }
-    });
-    
-    localStorage.setItem('projs_'+cls, JSON.stringify(data));
-  }
-  
-  localStorage.setItem('proj1_part1_initialized_v2','true');
-}
 
 // ============================================================
 // LANG
@@ -381,7 +424,6 @@ function toggleLang(){
 function applyLang(){
   document.querySelectorAll('.ar').forEach(e=>e.style.display=lang==='ar'?'':'none');
   document.querySelectorAll('.en').forEach(e=>e.style.display=lang==='en'?'':'none');
-  // Update selectors
   document.getElementById('sel-week').querySelectorAll('option').forEach((o,i)=>{
     o.textContent=(lang==='en'?'Week ':'الأسبوع ')+(i+1);
   });
@@ -467,17 +509,6 @@ function setMarksTab(t){
 }
 
 // ============================================================
-// STORAGE
-// ============================================================
-function getKey(){return `att_${curClass}_w${curWeek}_d${curDay}`;}
-function getAtt(){try{return JSON.parse(localStorage.getItem(getKey()))||[];}catch(e){return[];}}
-function setAtt(arr){localStorage.setItem(getKey(),JSON.stringify(arr));}
-function getHW(cls){try{return JSON.parse(localStorage.getItem('hw_'+cls))||[];}catch(e){return[];}}
-function setHW(cls,arr){localStorage.setItem('hw_'+cls,JSON.stringify(arr));}
-function getProjects(cls){try{return JSON.parse(localStorage.getItem('projs_'+cls))||{};}catch(e){return{};}}
-function setProjects(cls,data){localStorage.setItem('projs_'+cls,JSON.stringify(data));}
-
-// ============================================================
 // RENDER
 // ============================================================
 function render(){
@@ -532,7 +563,7 @@ function renderProjects(){
   curPart=+document.getElementById('sel-part').value;
   const proj=PROJECTS[curProj];
   const part=PARTS[curPart];
-  const dataKey=proj.key+'_'+part.key; // e.g., proj1_part1
+  const dataKey=proj.key+'_'+part.key;
   const data=getProjects(curClass);
   const L=lang==='en';
   let rows='';
@@ -550,9 +581,7 @@ function cycleRating(idx){
   const data=getProjects(curClass);
   const cur=(data[idx]&&data[idx][dataKey])||'unmarked';
   const next=RATINGS[(RATINGS.indexOf(cur)+1)%RATINGS.length];
-  if(!data[idx]) data[idx]={};
-  data[idx][dataKey]=next;
-  setProjects(curClass,data);
+  setProjVal(curClass, idx, dataKey, next);
   renderProjects();
 }
 function renderHW(){
@@ -568,8 +597,8 @@ function renderHW(){
 }
 function toggleHW(idx){
   const data=getHW(curClass);
-  data[idx]=!data[idx];
-  setHW(curClass,data);
+  const newVal = !data[idx];
+  setHWVal(curClass, idx, newVal);
   renderHW();
 }
 
@@ -582,14 +611,12 @@ function renderHistory(){
   let found=false;
   for(let w=1;w<=15;w++){
     for(let d=0;d<5;d++){
-      const key=`att_${curClass}_w${w}_d${d}`;
-      const data=localStorage.getItem(key);
-      if(data){
+      const key=`${curClass}_w${w}_d${d}`;
+      const data=attData[key];
+      if(data && data.length){
         found=true;
-        const arr=JSON.parse(data);
-        const p=arr.filter(s=>s==='present').length;
-        const a=arr.filter(s=>s==='absent').length;
-        const e=arr.filter(s=>s==='excused').length;
+        const p=data.filter(s=>s==='present').length;
+        const a=data.filter(s=>s==='absent').length;
         html+=`<div class="prog-row"><span>${L?'Week':'الأسبوع'} ${w} - ${L?DAYS_EN[d]:DAYS_AR[d]}</span><span class="stat green" style="padding:2px 6px;font-size:.65rem">${p} ${L?'P':'ح'}</span><span class="stat red" style="padding:2px 6px;font-size:.65rem">${a} ${L?'A':'غ'}</span></div>`;
       }
     }
@@ -618,7 +645,6 @@ function showStudentProgress(){
   const idx=document.getElementById('stu-name').value;
   if(idx==='') return;
   const i=+idx;
-  const name=C[cls][i];
   const L=lang==='en';
   
   // Attendance grid
@@ -626,25 +652,20 @@ function showStudentProgress(){
   let totalDays=0,presentDays=0;
   for(let w=1;w<=15;w++){
     for(let d=0;d<5;d++){
-      const key=`att_${cls}_w${w}_d${d}`;
-      try{
-        const data=JSON.parse(localStorage.getItem(key))||[];
-        const s=data[i]||'unmarked';
-        if(s!=='unmarked') totalDays++;
-        if(s==='present') presentDays++;
-        attHtml+=`<div class="prog-cell ${s}" title="${L?'Week':'أسبوع'} ${w} ${L?DAYS_EN[d]:DAYS_AR[d]}"></div>`;
-      }catch(e){
-        attHtml+=`<div class="prog-cell unmarked"></div>`;
-      }
+      const key=`${cls}_w${w}_d${d}`;
+      const data=attData[key]||[];
+      const s=data[i]||'unmarked';
+      if(s!=='unmarked') totalDays++;
+      if(s==='present') presentDays++;
+      attHtml+=`<div class="prog-cell ${s}" title="${L?'Week':'أسبوع'} ${w} ${L?DAYS_EN[d]:DAYS_AR[d]}"></div>`;
     }
   }
   const attRate=totalDays>0?Math.round(presentDays/totalDays*100):0;
   attHtml+=`</div><div style="margin-top:8px;font-size:.72rem;color:#64748b">${L?'Attendance Rate':'نسبة الحضور'}: ${attRate}%</div><div class="prog-bar"><div class="prog-fill" style="width:${attRate}%"></div></div></div>`;
   
-  // Projects - 3 projects each with 3 parts
+  // Projects
   const projs=getProjects(cls);
   let projHtml='<div class="prog-section"><div class="prog-header">🏆 '+(L?'Projects':'المشاريع')+'</div>';
-  
   PROJECTS.forEach(proj=>{
     projHtml+=`<div class="project-header">${L?proj.en:proj.ar}</div>`;
     PARTS.forEach(part=>{
@@ -664,41 +685,14 @@ function showStudentProgress(){
   document.getElementById('student-progress').innerHTML=attHtml+projHtml+hwHtml;
 }
 
-// ============================================================
-// EXPORT/IMPORT
-// ============================================================
-function exportData(){
-  const data={};
-  for(let k of Object.keys(localStorage)){
-    if(k.startsWith('att_')||k.startsWith('hw_')||k.startsWith('projs_')||k.includes('initialized')){
-      data[k]=localStorage.getItem(k);
-    }
-  }
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='progress_data.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-function importData(e){
-  const file=e.target.files[0];
-  if(!file) return;
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      const data=JSON.parse(ev.target.result);
-      Object.keys(data).forEach(k=>localStorage.setItem(k,data[k]));
-      alert(lang==='en'?'✓ Data imported!':'✓ تم استيراد البيانات!');
-      render();
-    }catch(err){
-      alert(lang==='en'?'✗ Import error':'✗ خطأ في الاستيراد');
-    }
-  };
-  reader.readAsText(file);
-  e.target.value='';
-}
+// Listen for real-time updates
+db.ref('/').on('value', (snapshot) => {
+  const data = snapshot.val() || {};
+  attData = data.att || {};
+  hwData = data.hw || {};
+  projData = data.projs || {};
+  render();
+});
 </script>
 </body>
 </html>
