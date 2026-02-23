@@ -329,7 +329,7 @@ async function loadAllData() {
   }
 }
 
-function getAttKey() { return `${curClass}_w${curWeek}_d${curDay}`; }
+function getAttKey() { return `${curClass}_${curWeek}_${curDay}`; }
 function getAtt() { return attData[getAttKey()] || []; }
 function setAtt(arr) {
   const key = getAttKey();
@@ -611,7 +611,7 @@ function renderHistory(){
   let found=false;
   for(let w=1;w<=15;w++){
     for(let d=0;d<5;d++){
-      const key=`${curClass}_w${w}_d${d}`;
+      const key=`${curClass}_${w}_${d}`;
       const data=attData[key];
       if(data && data.length){
         found=true;
@@ -652,7 +652,7 @@ function showStudentProgress(){
   let totalDays=0,presentDays=0;
   for(let w=1;w<=15;w++){
     for(let d=0;d<5;d++){
-      const key=`${cls}_w${w}_d${d}`;
+      const key=`${cls}_${w}_${d}`;
       const data=attData[key]||[];
       const s=data[i]||'unmarked';
       if(s!=='unmarked') totalDays++;
