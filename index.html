@@ -1,698 +1,1404 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mr.Riyadh Progress Record</title>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --teal:#0d9488;--teal-d:#0f766e;--teal-l:#14b8a6;--teal-50:#f0fdfa;
-  --green:#22c55e;--green-bg:#dcfce7;--green-txt:#166534;
-  --red:#ef4444;--red-bg:#fecaca;--red-txt:#991b1b;
-  --amber:#f59e0b;--amber-bg:#fef3c7;--amber-txt:#92400e;
-  --blue:#3b82f6;--blue-bg:#dbeafe;--blue-txt:#1e40af;
-  --purple:#8b5cf6;--purple-bg:#ede9fe;--purple-txt:#5b21b6;
-  --slate:#64748b;--bg:#eef2f7;--card:#fff;
-  --shadow:0 2px 12px rgba(15,118,110,0.1);
-}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);min-height:100vh;color:#1e293b;overflow-x:hidden}
-.header{background:linear-gradient(135deg,#134e4a 0%,#0d9488 50%,#14b8a6 100%);position:relative;overflow:hidden;padding:26px 16px 22px;text-align:center;color:#fff}
-.header::before{content:'';position:absolute;top:-50px;right:-50px;width:220px;height:220px;background:rgba(255,255,255,0.06);border-radius:50%}
-.header::after{content:'';position:absolute;bottom:-70px;left:-40px;width:200px;height:200px;background:rgba(255,255,255,0.04);border-radius:50%}
-.header h1{font-family:'Amiri',serif;font-size:1.6rem;font-weight:700;position:relative;z-index:1;text-shadow:0 1px 3px rgba(0,0,0,.2)}
-.header .sub{font-size:.72rem;opacity:.7;margin-top:4px;position:relative;z-index:1;font-weight:300}
-.mode-toggle{display:flex;gap:8px;justify-content:center;margin-top:14px;position:relative;z-index:1}
-.mode-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 14px;border-radius:20px;font-family:inherit;font-size:.75rem;cursor:pointer;backdrop-filter:blur(4px);transition:all .2s}
-.mode-btn:hover,.mode-btn.active{background:rgba(255,255,255,0.3)}
-.lang-btn{position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:.75rem;cursor:pointer;z-index:10;backdrop-filter:blur(4px);transition:background .2s}
-.lang-btn:hover{background:rgba(255,255,255,0.3)}
-.sync-status{position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:12px;font-size:.65rem;z-index:10}
-.sync-status.online{background:var(--green-bg);color:var(--green-txt)}
-.sync-status.offline{background:var(--red-bg);color:var(--red-txt)}
-.sync-status.syncing{background:var(--amber-bg);color:var(--amber-txt)}
-.container{max-width:600px;margin:0 auto;padding:0 12px 100px}
-.class-tabs{display:flex;gap:6px;padding:12px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.class-tab{flex-shrink:0;padding:8px 14px;border-radius:18px;border:none;background:var(--card);font-family:inherit;font-size:.78rem;cursor:pointer;box-shadow:var(--shadow);transition:all .2s;color:#475569}
-.class-tab.active{background:var(--teal);color:#fff}
-.tabs{display:flex;gap:6px;margin:8px 0 12px;background:var(--card);border-radius:12px;padding:6px;box-shadow:var(--shadow)}
-.tab-btn{flex:1;padding:10px 8px;border:none;background:transparent;font-family:inherit;font-size:.72rem;cursor:pointer;border-radius:8px;transition:all .2s;color:#64748b}
-.tab-btn.active{background:var(--teal);color:#fff}
-.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
-.date-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.date-row select,.date-row input{padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:.78rem;background:#fff}
-.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-.legend-item{display:flex;align-items:center;gap:4px;font-size:.68rem;color:#64748b}
-.legend-dot{width:12px;height:12px;border-radius:50%}
-.bulk-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.bulk-btn{padding:6px 10px;border:none;border-radius:8px;font-family:inherit;font-size:.68rem;cursor:pointer;transition:all .2s}
-.bulk-btn.green{background:var(--green-bg);color:var(--green-txt)}
-.bulk-btn.red{background:var(--red-bg);color:var(--red-txt)}
-.bulk-btn.slate{background:#e2e8f0;color:#475569}
-.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.stat{padding:6px 10px;border-radius:8px;font-size:.70rem;font-weight:500}
-.stat.green{background:var(--green-bg);color:var(--green-txt)}
-.stat.red{background:var(--red-bg);color:var(--red-txt)}
-.stat.amber{background:var(--amber-bg);color:var(--amber-txt)}
-.stat.slate{background:#e2e8f0;color:#475569}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px 6px;text-align:right;border-bottom:1px solid #f1f5f9}
-th{font-size:.70rem;color:#64748b;font-weight:500}
-.td-num{font-family:'Poppins',sans-serif;font-size:.72rem;color:#94a3b8;width:28px}
-.td-name{font-size:.80rem}
-.status-btn{width:36px;height:36px;border-radius:50%;border:none;font-size:.85rem;cursor:pointer;transition:all .15s}
-.status-btn.unmarked{background:#e2e8f0;color:#94a3b8}
-.status-btn.present{background:var(--green);color:#fff}
-.status-btn.absent{background:var(--red);color:#fff}
-.status-btn.excused{background:var(--amber);color:#fff}
-.hidden{display:none!important}
-.marks-sub-tabs{display:flex;gap:6px;margin-bottom:12px}
-.ms-tab{flex:1;padding:8px;border:none;background:#f1f5f9;font-family:inherit;font-size:.72rem;cursor:pointer;border-radius:8px;transition:all .2s;color:#64748b}
-.ms-tab.active{background:var(--teal);color:#fff}
-.sel-row{display:flex;gap:8px;margin-bottom:12px;justify-content:center;flex-wrap:wrap}
-.sel-row select{padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:.78rem;background:#fff}
-.rating-btn{width:100%;padding:8px 10px;border:2px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:.72rem;cursor:pointer;transition:all .2s;background:#fff;text-align:center}
-.rating-btn.unmarked{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
-.rating-btn.acceptable{background:var(--green-bg);border-color:var(--green);color:var(--green-txt)}
-.rating-btn.brilliant{background:var(--blue-bg);border-color:var(--blue);color:var(--blue-txt)}
-.rating-btn.masterpiece{background:var(--purple-bg);border-color:var(--purple);color:var(--purple-txt)}
-.hw-toggle{width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:.75rem;cursor:pointer;transition:all .2s;background:#fff}
-.hw-toggle.done{background:var(--green-bg);border-color:var(--green);color:var(--green-txt)}
-.hw-toggle.pending{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
-.student-card{background:var(--card);border-radius:16px;padding:20px;margin-top:16px;box-shadow:var(--shadow)}
-.student-title{font-family:'Amiri',serif;font-size:1.1rem;text-align:center;margin-bottom:16px;color:var(--teal-d)}
-.prog-section{margin-bottom:20px}
-.prog-header{font-size:.80rem;font-weight:600;margin-bottom:10px;color:#334155;display:flex;align-items:center;gap:6px}
-.prog-grid{display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
-.prog-cell{aspect-ratio:1;border-radius:4px;font-size:.5rem;display:flex;align-items:center;justify-content:center}
-.prog-cell.present{background:var(--green)}
-.prog-cell.absent{background:var(--red)}
-.prog-cell.excused{background:var(--amber)}
-.prog-cell.unmarked{background:#e2e8f0}
-.prog-row{display:flex;justify-content:space-between;padding:8px 12px;background:#f8fafc;border-radius:8px;margin-bottom:6px;font-size:.78rem}
-.prog-badge{padding:4px 10px;border-radius:12px;font-size:.70rem;font-weight:500}
-.prog-badge.acceptable{background:var(--green-bg);color:var(--green-txt)}
-.prog-badge.brilliant{background:var(--blue-bg);color:var(--blue-txt)}
-.prog-badge.masterpiece{background:var(--purple-bg);color:var(--purple-txt)}
-.prog-badge.pending{background:#e2e8f0;color:#64748b}
-.prog-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-top:6px}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-l));border-radius:4px;transition:width .3s}
-.project-header{background:linear-gradient(90deg,var(--teal-50),transparent);padding:8px 12px;border-radius:8px;margin-bottom:8px;font-weight:600;font-size:.78rem;color:var(--teal-d)}
-.pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
-.pin-box{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:320px;text-align:center}
-.pin-title{font-family:'Amiri',serif;font-size:1.1rem;margin-bottom:6px;color:var(--teal-d)}
-.pin-sub{font-size:.75rem;color:#64748b;margin-bottom:16px}
-.pin-input{width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-family:'Poppins',sans-serif;font-size:1.2rem;text-align:center;letter-spacing:8px;margin-bottom:12px}
-.pin-input:focus{outline:none;border-color:var(--teal)}
-.pin-btns{display:flex;gap:8px}
-.pin-btns button{flex:1;padding:10px;border:none;border-radius:8px;font-family:inherit;font-size:.78rem;cursor:pointer}
-.pin-btns .cancel{background:#e2e8f0;color:#475569}
-.pin-btns .submit{background:var(--teal);color:#fff}
-.pin-error{color:var(--red);font-size:.72rem;margin-top:8px}
-.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:2000;flex-direction:column;gap:16px}
-.loading-spinner{width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:var(--teal);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{font-size:.85rem;color:#64748b}
-@media(max-width:400px){.header h1{font-size:1.4rem}.mode-btn{font-size:.68rem;padding:6px 10px}}
-</style>
-</head>
-<body>
-<div class="loading-overlay" id="loading">
-  <div class="loading-spinner"></div>
-  <div class="loading-text"><span class="ar">جاري تحميل البيانات...</span><span class="en">Loading data...</span></div>
-</div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mr.Riyadh Progress Record</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
 
-<button class="lang-btn" onclick="toggleLang()">EN</button>
-<div class="sync-status online" id="sync-status">● <span class="ar">متصل</span><span class="en">Online</span></div>
+    :root {
+      --teal: #0d9488;
+      --teal-d: #0f766e;
+      --teal-l: #14b8a6;
+      --teal-50: #f0fdfa;
+      --green: #22c55e;
+      --green-bg: #dcfce7;
+      --green-txt: #166534;
+      --red: #ef4444;
+      --red-bg: #fecaca;
+      --red-txt: #991b1b;
+      --amber: #f59e0b;
+      --amber-bg: #fef3c7;
+      --amber-txt: #92400e;
+      --blue: #3b82f6;
+      --blue-bg: #dbeafe;
+      --blue-txt: #1e40af;
+      --purple: #8b5cf6;
+      --purple-bg: #ede9fe;
+      --purple-txt: #5b21b6;
+      --slate: #64748b;
+      --bg: #eef2f7;
+      --card: #fff;
+      --shadow: 0 2px 12px rgba(15, 118, 110, 0.1);
+    }
 
-<header class="header">
-  <h1 id="header-title">📚 سجل متابعة استاذ رياض<br><span style="font-family:'Poppins',sans-serif;font-size:.52rem;opacity:.55;font-weight:400">Mr.Riyadh Progress Record</span></h1>
-  <div class="sub" id="header-sub">مدرسة المروة المتوسطة · اللغة الإنجليزية<br><span style="font-family:'Poppins',sans-serif;font-size:.88em;opacity:.8">Al-Marwa Middle School · English</span></div>
-  <div class="mode-toggle">
-    <button class="mode-btn active" id="btn-teacher" onclick="showTeacher()">👨‍🏫 <span class="ar">وضع المعلم</span><span class="en">Teacher</span></button>
-    <button class="mode-btn" id="btn-student" onclick="showStudent()">👨‍🎓 <span class="ar">وضع الطالب</span><span class="en">Student</span></button>
-  </div>
-</header>
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      color: #1e293b;
+      overflow-x: hidden
+    }
 
-<div class="container">
-  <div id="class-tabs" class="class-tabs"></div>
+    .header {
+      background: linear-gradient(135deg, #134e4a 0%, #0d9488 50%, #14b8a6 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 26px 16px 22px;
+      text-align: center;
+      color: #fff
+    }
 
-  <!-- TEACHER MODE -->
-  <div id="teacher-view">
-    <div class="tabs">
-      <button class="tab-btn active" id="tab-att-btn" onclick="setTab('att')">📋 <span class="ar">الحضور</span><span class="en">Attendance</span></button>
-      <button class="tab-btn" id="tab-marks-btn" onclick="setTab('marks')">📝 <span class="ar">المتابعة</span><span class="en">Progress</span></button>
-      <button class="tab-btn" id="tab-hist-btn" onclick="setTab('hist')">📅 <span class="ar">السجل</span><span class="en">History</span></button>
-    </div>
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 50%
+    }
 
-    <!-- ATTENDANCE TAB -->
-    <div id="tab-att" class="card">
-      <div class="date-row">
-        <select id="sel-week" onchange="render()"></select>
-        <select id="sel-day" onchange="render()"></select>
-      </div>
-      <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span class="ar">حاضر</span><span class="en">Present</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span class="ar">غائب</span><span class="en">Absent</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div><span class="ar">معفى</span><span class="en">Excused</span></div>
-      </div>
-      <div class="bulk-btns">
-        <button class="bulk-btn green" onclick="markAll('present')">✓ <span class="ar">حضور الكل</span><span class="en">All Present</span></button>
-        <button class="bulk-btn red" onclick="markAll('absent')">✗ <span class="ar">غياب الكل</span><span class="en">All Absent</span></button>
-        <button class="bulk-btn slate" onclick="markAll('unmarked')">🗑 <span class="ar">مسح</span><span class="en">Clear</span></button>
-      </div>
-      <div class="stats" id="stats"></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>#</th><th><span class="ar">الطالب</span><span class="en">Student</span></th><th><span class="ar">الحضور</span><span class="en">Status</span></th></tr></thead>
-          <tbody id="att-body"></tbody>
-        </table>
-      </div>
-    </div>
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -70px;
+      left: -40px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 50%
+    }
 
-    <!-- MARKS TAB -->
-    <div id="tab-marks" class="card hidden">
-      <div class="marks-sub-tabs">
-        <button class="ms-tab active" id="mtab-proj" onclick="setMarksTab('proj')">🏆 <span class="ar">المشاريع</span><span class="en">Projects</span></button>
-        <button class="ms-tab" id="mtab-hw" onclick="setMarksTab('hw')">📓 <span class="ar">الواجبات</span><span class="en">Homework</span></button>
-      </div>
-      <div id="sub-proj">
-        <div class="sel-row">
-          <select id="sel-proj" onchange="renderProjects()"></select>
-          <select id="sel-part" onchange="renderProjects()"></select>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>#</th><th><span class="ar">الطالب</span><span class="en">Student</span></th><th><span class="ar">التقييم</span><span class="en">Rating</span></th></tr></thead>
-            <tbody id="proj-body"></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="sub-hw" class="hidden">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>#</th><th><span class="ar">الطالب</span><span class="en">Student</span></th><th><span class="ar">الواجب</span><span class="en">Homework</span></th></tr></thead>
-            <tbody id="hw-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    .header h1 {
+      font-family: 'Amiri', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, .2)
+    }
 
-    <!-- HISTORY TAB -->
-    <div id="tab-hist" class="card hidden">
-      <div id="history-content"></div>
-    </div>
-  </div>
+    .header .sub {
+      font-size: .72rem;
+      opacity: .7;
+      margin-top: 4px;
+      position: relative;
+      z-index: 1;
+      font-weight: 300
+    }
 
-  <!-- STUDENT MODE -->
-  <div id="student-view" class="hidden">
-    <div class="student-card">
-      <div class="student-title" id="student-title"><span class="ar">اطلع على متابعتك</span><span class="en">Check Your Progress</span></div>
-      <div class="date-row">
-        <select id="stu-class" onchange="onStuClassChange()"></select>
-        <select id="stu-name" onchange="showStudentProgress()"></select>
-      </div>
-      <div id="student-progress"></div>
-    </div>
-  </div>
-</div>
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+      position: relative;
+      z-index: 1
+    }
 
-<!-- PIN OVERLAY -->
-<div id="pin-overlay" class="pin-overlay hidden">
-  <div class="pin-box">
-    <div class="pin-title"><span class="ar">الوصول المحمي</span><span class="en">Protected Access</span></div>
-    <div class="pin-sub"><span class="ar">أدخل الرقم السري للدخول</span><span class="en">Enter PIN to access Teacher Mode</span></div>
-    <input type="password" id="pin-input" class="pin-input" maxlength="6" placeholder="••••••">
-    <div class="pin-btns">
-      <button class="cancel" onclick="cancelPin()"><span class="ar">إلغاء</span><span class="en">Cancel</span></button>
-      <button class="submit" onclick="submitPin()"><span class="ar">دخول</span><span class="en">Enter</span></button>
-    </div>
-    <div class="pin-error hidden" id="pin-error"><span class="ar">رقم خاطئ</span><span class="en">Incorrect PIN</span></div>
-  </div>
-</div>
+    .mode-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: .75rem;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all .2s
+    }
 
-<script>
-// ============================================================
-// FIREBASE CONFIG
-// ============================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyC9xG4MJtIbONhTMPBNpr16LA_pL4Er7QU",
-  authDomain: "riadh-tracker.firebaseapp.com",
-  databaseURL: "https://riadh-tracker-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "riadh-tracker",
-  storageBucket: "riadh-tracker.firebasestorage.app",
-  messagingSenderId: "642829998259",
-  appId: "1:642829998259:web:02683526c97bb675fa78c6"
-};
+    .mode-btn:hover,
+    .mode-btn.active {
+      background: rgba(255, 255, 255, 0.3)
+    }
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    .lang-btn {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-size: .75rem;
+      cursor: pointer;
+      z-index: 10;
+      backdrop-filter: blur(4px);
+      transition: background .2s
+    }
 
-// ============================================================
-// DATA
-// ============================================================
-const C={
-  1:["ابراهيم بندر الزهراني","البراء عبدالغني المصباحي","أمير متعب الغامدي","أنس خالد باقيس","بدر هشام العلوني","بسام أيمن الغامدي","تركي إبراهيم زغبي","تيم إياد أبو فول","تيم محمد البطريخي","ثامر أحمد الزهراني","حسن يوسف الدوري","راكان محمد العلياني","رسول أحمد غزواني","سعود خالد","عبدالرحمن أحمد القشاش","عبدالرحمن عبدالله بابعير","عبدالرحمن فهد الحمود الزهراني","عبدالعزيز سلطان الأحمدي","عبدالله أحمد برعيه","عبدالله علي خشرم الشمري","عثمان محمد بن محفوظ","عمر سلطان السحيمي","فراس حيان الغفري","فيصل عبدالعزيز العمودي","قاسم علي ديبان","محمد سليمان الزهراني","محمد ظافر العمري","مروان معتصم عبدالحفيظ","ناصر محسن المولد","ياسر محمد قاسم","يزن أحمد عبدالعزيز","يزن ياسر العكبري","يوسف طه جداوى","يوسف محمد الخرساني","يونس عبدالعزيز العمودي"],
-  2:["إبراهيم حسين الكاف","أحمد عبدالرحمن البارقي","أسامه حمزة مراد","أسامه عبدالله عبدالله","الوليد نادر باديي","أنس محمد باشماخ","أويس عبدالرحمن باحسين","بتال فهد حمدان","تميم عبدالله البكري","توفيق الماحي حمد النيل","حمزة محمود طيبة","خالد عبدالله الثقفي","رائد عبدالقادر شوق","راشد طارق باجمال","زيد شريف باقير","سهيل حسن الجهني","صالح محمد بانشوان","عبدالرحمن جهاد العطاس","عبدالعزيز حسن العطاس","عبدالعزيز عبدالله العرشي","عبدالكريم مجد صوي","عبدالله شرف قصير","عبدالمجيد ناصر البديني","عمر محمد أبوعيران","عمر يسري شعلان","كريم محمد أحمد ناصيف","محسن مطهر الفقيه","محمد فيصل الزهراني","مؤيد أنس مصلح","نواف نائف الصليلي","وهاج أحمد الشرفي","يوسف تيسير الدوليبي","يوسف سامر عاصم","يوسف محمد المنصوري","يوسف نزيه القاسم"],
-  3:["أحمد يحيى عبسى","أسامه رمزي صالح","أسامه هاني عبده","إياد علي الناشري","جعفر محمد السقاف","جواد حسام السلمي","جواد يحيى عطيف","حسام عدنان الكاف","حسين سالم بالخير","خالد علي القرني","خالد عماد العطاس","ريان سهيل باسهيل","سامر هاني الشطيري","عبدالرحمن صالح العطاس","عبدالرحمن نزار باعوافي","عبدالعزيز حسن سعيد","عبدالله أحمد بارشيد","عبدالله سامي زغفي","علي إبراهيم الحربي","عمر حاتم القشاش","عوام عبدالرحمن السيالي","كريم عصام أبوزور","كريم مرهف شما","لؤي حمود السبيعي","مؤيد أحمد بيني","محمد جمال الزهراني","ميار وائل سعد","وسام أحمد العبسي","يزن بلال سليمان","يزن خالد فكي","يزن عمر الصدفاء","يونس عويض الزهراني"],
-  4:["أحمد حمود درّاج","أحمد سعيد بالبيد","المؤيد بسام سخنيني","أمير هاشل القرني","أمير وائل صالح","تامر منصور حكمي","تميم سعد السلمي","تميم محمد التميمي","خالد عبدالرحمن الصعب","خالد محمد العبدي","زياد وليد باقبص","سعود خالد القرشي","سعود محمد المطيري","سلام عابد اللحياني","صالح سالم الزهراني","عبدالرحمن علي الزهراني","عبدالرحمن هاني ناجي","عبدالعزيز خالد الزهراني","عبدالعزيز علي العلي","علي عبدالله بامطرف","عمار عبدالعزيز دويد","عمر سليم جاموس","عمران عمار حمو","فواز محمد السبيعي","قصي بن طلال بن نقلي","كنان بن محمد آل خصفان القرني","محمد شادي غبون","محمد عبدالعزيز دويد","محمد علي عتين","محمد يحيى حمدي","مراد عباس مشيم","مشعل محمد اللقماني","مهند سامي الحربي","مهند عبدالمنعم البيشي","يزن آدم الصبياني"],
-  5:["إبراهيم عبد الفتاح محمد","أحمد جهاد العطاس","أحمد هيثم حمدون","أنس أحمد الحارثي","أمير القرني","بتال عبدالله السهلي","جسار عبدالله الزهراني","حارث هلال الحارثي","حمزه محمد العطاس","خالد عبدالرحمن محمد علي ملا","خالد محمد القطروس","خلدون توفيق سيف","رائد فتيني مجهص","رامي صالح صبياني","رياض لطف المطحني","ريان أيمن العكبري","سالم نايف النهدي","سعد صابر فريد","سعد العولقي","سعيد عبدالله باقفة","سلطان عادل الجفري","سيف عادل بامنصور","عبدالرحمن عبدالعزيز أفضل","عبدالرحمن عبدالله الشهري","عبدالرحيم حسن المهجوس","عبدالعزيز أحمد بارحيم","عساف رضي المحوري","علي عسكر آل سعد","فهد عبدالعزيز الزهراني","فهد هاشم الظاهري","محمد عبدالرحمن الزهراني","معين مهران الزهارنة","يزن علاء باكريم","يوسف محمد غزواني","أحمد محمد بازرعه"],
-  6:["إبراهيم محسن باجابر","أحمد سعدي سرداح","أديب مشعل الشائع","أوس عبدالرحمن عسيري","حيدر ناصر فرحان","خالد وليد التميمي","رامي نافذ البنا","زياد ياسر السلمي","عبدالرحمن نواف السالمي","عبدالله عائض الحربي","عبدالمجيد حسين العمودي","فراس محمد القرني","فهد سالم باحسن","فهد عبدالعزيز الزهراني","فيصل حاتم زعرب","فيصل فايز حلواني","قيس أحمد مبارك","ليث تامر الأمير","ماجد صالح الصحفي","مؤيد أحمد السقاف","مؤيد عثمان العمودي","محمد أحمد بازهير","محمد رائد أبوالزوائد","محمد عادل باجندوح","محمد عبدالله الهدار","معاذ عمار الخطيب","ميادي وليد المحوري","نايف أحمد حميد","هاشم محمد العمري","وسام علي الجهني","يامن عبدالباري بطيلي","يزن محمد الزهراني","يوسف خالد الصلاحي","يوسف سعد الحاج عمير","يوسف هاشم الكاف","فهد محمد الزهراني"]
-};
+    .lang-btn:hover {
+      background: rgba(255, 255, 255, 0.3)
+    }
 
-// 3 PROJECTS, EACH WITH 3 PARTS
-const PROJECTS=[
-  {key:'proj1', ar:'المشروع الأول',  en:'Project 1'},
-  {key:'proj2', ar:'المشروع الثاني', en:'Project 2'},
-  {key:'proj3', ar:'المشروع الثالث', en:'Project 3'}
-];
-const PARTS=[
-  {key:'part1', ar:'الجزء الأول',  en:'Part 1'},
-  {key:'part2', ar:'الجزء الثاني', en:'Part 2'},
-  {key:'part3', ar:'الجزء الثالث', en:'Part 3'}
-];
-const RATINGS=['unmarked','acceptable','brilliant','masterpiece'];
-const RATING_AR={unmarked:'غير محدد',acceptable:'مقبول',brilliant:'ممتاز',masterpiece:'تحفة فنية'};
-const RATING_EN={unmarked:'Not Rated',acceptable:'Acceptable',brilliant:'Brilliant',masterpiece:'Masterpiece'};
-const RATING_ICON={unmarked:'?',acceptable:'✓',brilliant:'⭐',masterpiece:'🏆'};
+    .sync-status {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: .65rem;
+      z-index: 10
+    }
 
-const DAYS_AR=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس'];
-const DAYS_EN=['Sun','Mon','Tue','Wed','Thu'];
-const PIN='#1984#';
+    .sync-status.online {
+      background: var(--green-bg);
+      color: var(--green-txt)
+    }
 
-let lang='ar';
-let curClass=1;
-let curWeek=1;
-let curDay=0;
-let curTab='att';
-let curMarksTab='proj';
-let curProj=0;
-let curPart=0;
-let isTeacher=false;
+    .sync-status.offline {
+      background: var(--red-bg);
+      color: var(--red-txt)
+    }
 
-// Firebase data cache
-let attData = {};
-let hwData = {};
-let projData = {};
+    .sync-status.syncing {
+      background: var(--amber-bg);
+      color: var(--amber-txt)
+    }
 
-// ============================================================
-// FIREBASE FUNCTIONS
-// ============================================================
-function setSyncStatus(status) {
-  const el = document.getElementById('sync-status');
-  el.className = 'sync-status ' + status;
-  const L = lang === 'en';
-  if (status === 'online') el.innerHTML = '● ' + (L ? 'Online' : 'متصل');
-  else if (status === 'offline') el.innerHTML = '○ ' + (L ? 'Offline' : 'غير متصل');
-  else el.innerHTML = '◌ ' + (L ? 'Syncing...' : 'جاري المزامنة...');
-}
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 12px 100px
+    }
 
-async function loadAllData() {
-  try {
-    setSyncStatus('syncing');
-    const snapshot = await db.ref('/').once('value');
-    const data = snapshot.val() || {};
-    attData = data.att || {};
-    hwData = data.hw || {};
-    projData = data.projs || {};
-    setSyncStatus('online');
-    document.getElementById('loading').classList.add('hidden');
-    render();
-  } catch (e) {
-    console.error('Load error:', e);
-    setSyncStatus('offline');
-    document.getElementById('loading').classList.add('hidden');
-  }
-}
+    .class-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 12px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch
+    }
 
-function getAttKey() { return `${curClass}_${curWeek}_${curDay}`; }
-function getAtt() { return attData[getAttKey()] || []; }
-function setAtt(arr) {
-  const key = getAttKey();
-  attData[key] = arr;
-  db.ref('att/' + key).set(arr);
-}
+    .class-tab {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 18px;
+      border: none;
+      background: var(--card);
+      font-family: inherit;
+      font-size: .78rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all .2s;
+      color: #475569
+    }
 
-function getHW(cls) { return hwData[cls] || []; }
-function setHWVal(cls, idx, val) {
-  if (!hwData[cls]) hwData[cls] = [];
-  hwData[cls][idx] = val;
-  db.ref('hw/' + cls).set(hwData[cls]);
-}
+    .class-tab.active {
+      background: var(--teal);
+      color: #fff
+    }
 
-function getProjects(cls) { return projData[cls] || {}; }
-function setProjVal(cls, idx, key, val) {
-  if (!projData[cls]) projData[cls] = {};
-  if (!projData[cls][idx]) projData[cls][idx] = {};
-  projData[cls][idx][key] = val;
-  db.ref('projs/' + cls + '/' + idx).set(projData[cls][idx]);
-}
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin: 8px 0 12px;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: var(--shadow)
+    }
 
-// ============================================================
-// INIT
-// ============================================================
-(function init(){
-  // Class tabs
-  const wrap=document.getElementById('class-tabs');
-  for(let i=1;i<=6;i++){
-    const b=document.createElement('button');
-    b.className='class-tab'+(i===1?' active':'');
-    b.textContent='1/'+i;
-    b.onclick=()=>setClass(i);
-    wrap.appendChild(b);
-  }
-  // Week selector
-  const ws=document.getElementById('sel-week');
-  for(let w=1;w<=15;w++){
-    const o=document.createElement('option');
-    o.value=w;
-    o.textContent=(lang==='en'?'Week ':'الأسبوع ')+w;
-    ws.appendChild(o);
-  }
-  // Day selector
-  const ds=document.getElementById('sel-day');
-  for(let d=0;d<5;d++){
-    const o=document.createElement('option');
-    o.value=d;
-    o.textContent=lang==='en'?DAYS_EN[d]:DAYS_AR[d];
-    ds.appendChild(o);
-  }
-  // Project selector
-  const ps=document.getElementById('sel-proj');
-  PROJECTS.forEach((p,i)=>{
-    const o=document.createElement('option');
-    o.value=i;
-    o.textContent=lang==='en'?p.en:p.ar;
-    ps.appendChild(o);
-  });
-  // Part selector
-  const pts=document.getElementById('sel-part');
-  PARTS.forEach((p,i)=>{
-    const o=document.createElement('option');
-    o.value=i;
-    o.textContent=lang==='en'?p.en:p.ar;
-    pts.appendChild(o);
-  });
-  // Student class selector
-  const sc=document.getElementById('stu-class');
-  for(let i=1;i<=6;i++){
-    const o=document.createElement('option');
-    o.value=i;
-    o.textContent=(lang==='en'?'Class ':'الصف ')+'1/'+i;
-    sc.appendChild(o);
-  }
-  
-  applyLang();
-  loadAllData();
-})();
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: .72rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all .2s;
+      color: #64748b
+    }
 
-// ============================================================
-// LANG
-// ============================================================
-function toggleLang(){
-  lang=lang==='ar'?'en':'ar';
-  document.documentElement.lang=lang;
-  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
-  document.querySelector('.lang-btn').textContent=lang==='ar'?'EN':'ع';
-  applyLang();
-  render();
-}
-function applyLang(){
-  document.querySelectorAll('.ar').forEach(e=>e.style.display=lang==='ar'?'':'none');
-  document.querySelectorAll('.en').forEach(e=>e.style.display=lang==='en'?'':'none');
-  document.getElementById('sel-week').querySelectorAll('option').forEach((o,i)=>{
-    o.textContent=(lang==='en'?'Week ':'الأسبوع ')+(i+1);
-  });
-  document.getElementById('sel-day').querySelectorAll('option').forEach((o,i)=>{
-    o.textContent=lang==='en'?DAYS_EN[i]:DAYS_AR[i];
-  });
-  document.getElementById('sel-proj').querySelectorAll('option').forEach((o,i)=>{
-    o.textContent=lang==='en'?PROJECTS[i].en:PROJECTS[i].ar;
-  });
-  document.getElementById('sel-part').querySelectorAll('option').forEach((o,i)=>{
-    o.textContent=lang==='en'?PARTS[i].en:PARTS[i].ar;
-  });
-  document.getElementById('stu-class').querySelectorAll('option').forEach((o,i)=>{
-    o.textContent=(lang==='en'?'Class ':'الصف ')+'1/'+(i+1);
-  });
-}
-function rLabel(r){return lang==='en'?RATING_EN[r]:RATING_AR[r];}
+    .tab-btn.active {
+      background: var(--teal);
+      color: #fff
+    }
 
-// ============================================================
-// MODE SWITCHING
-// ============================================================
-function showTeacher(){
-  if(!isTeacher){
-    document.getElementById('pin-overlay').classList.remove('hidden');
-    document.getElementById('pin-input').value='';
-    document.getElementById('pin-input').focus();
-    return;
-  }
-  document.getElementById('btn-teacher').classList.add('active');
-  document.getElementById('btn-student').classList.remove('active');
-  document.getElementById('teacher-view').classList.remove('hidden');
-  document.getElementById('student-view').classList.add('hidden');
-}
-function showStudent(){
-  document.getElementById('btn-student').classList.add('active');
-  document.getElementById('btn-teacher').classList.remove('active');
-  document.getElementById('student-view').classList.remove('hidden');
-  document.getElementById('teacher-view').classList.add('hidden');
-  onStuClassChange();
-}
-function submitPin(){
-  const val=document.getElementById('pin-input').value;
-  if(val===PIN){
-    isTeacher=true;
-    document.getElementById('pin-overlay').classList.add('hidden');
-    document.getElementById('pin-error').classList.add('hidden');
-    showTeacher();
-  }else{
-    document.getElementById('pin-error').classList.remove('hidden');
-  }
-}
-function cancelPin(){
-  document.getElementById('pin-overlay').classList.add('hidden');
-  showStudent();
-}
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow)
+    }
 
-// ============================================================
-// CLASS & TAB
-// ============================================================
-function setClass(c){
-  curClass=c;
-  document.querySelectorAll('.class-tab').forEach((b,i)=>b.classList.toggle('active',i+1===c));
-  render();
-}
-function setTab(t){
-  curTab=t;
-  document.getElementById('tab-att-btn').classList.toggle('active',t==='att');
-  document.getElementById('tab-marks-btn').classList.toggle('active',t==='marks');
-  document.getElementById('tab-hist-btn').classList.toggle('active',t==='hist');
-  document.getElementById('tab-att').classList.toggle('hidden',t!=='att');
-  document.getElementById('tab-marks').classList.toggle('hidden',t!=='marks');
-  document.getElementById('tab-hist').classList.toggle('hidden',t!=='hist');
-  if(t==='marks') renderMarks();
-  if(t==='hist') renderHistory();
-}
-function setMarksTab(t){
-  curMarksTab=t;
-  document.getElementById('mtab-proj').classList.toggle('active',t==='proj');
-  document.getElementById('mtab-hw').classList.toggle('active',t==='hw');
-  document.getElementById('sub-proj').classList.toggle('hidden',t!=='proj');
-  document.getElementById('sub-hw').classList.toggle('hidden',t!=='hw');
-  renderMarks();
-}
+    .date-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      align-items: center
+    }
 
-// ============================================================
-// RENDER
-// ============================================================
-function render(){
-  curWeek=+document.getElementById('sel-week').value;
-  curDay=+document.getElementById('sel-day').value;
-  const data=getAtt();
-  const students=C[curClass];
-  let present=0,absent=0,excused=0;
-  let rows='';
-  students.forEach((name,i)=>{
-    const s=data[i]||'unmarked';
-    if(s==='present')present++;
-    if(s==='absent')absent++;
-    if(s==='excused')excused++;
-    const icon=s==='present'?'✓':s==='absent'?'✗':s==='excused'?'~':'?';
-    rows+=`<tr><td class="td-num">${i+1}</td><td class="td-name">${name}</td><td><button class="status-btn ${s}" onclick="cycleStatus(${i})">${icon}</button></td></tr>`;
-  });
-  document.getElementById('att-body').innerHTML=rows;
-  const L=lang==='en';
-  document.getElementById('stats').innerHTML=`
-    <span class="stat green">${L?'Present':'حاضر'}: ${present}</span>
-    <span class="stat red">${L?'Absent':'غائب'}: ${absent}</span>
-    <span class="stat amber">${L?'Excused':'معفى'}: ${excused}</span>
-    <span class="stat slate">${L?'Total':'المجموع'}: ${students.length}</span>
-  `;
-}
-function cycleStatus(idx){
-  const data=getAtt();
-  const cur=data[idx]||'unmarked';
-  const cycle=['unmarked','present','absent','excused'];
-  const next=cycle[(cycle.indexOf(cur)+1)%4];
-  data[idx]=next;
-  setAtt(data);
-  render();
-}
-function markAll(status){
-  const data=[];
-  C[curClass].forEach(()=>data.push(status));
-  setAtt(data);
-  render();
-}
+    .date-row select,
+    .date-row input {
+      padding: 8px 10px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .78rem;
+      background: #fff
+    }
 
-// ============================================================
-// MARKS
-// ============================================================
-function renderMarks(){
-  if(curMarksTab==='proj') renderProjects();
-  else renderHW();
-}
-function renderProjects(){
-  curProj=+document.getElementById('sel-proj').value;
-  curPart=+document.getElementById('sel-part').value;
-  const proj=PROJECTS[curProj];
-  const part=PARTS[curPart];
-  const dataKey=proj.key+'_'+part.key;
-  const data=getProjects(curClass);
-  const L=lang==='en';
-  let rows='';
-  C[curClass].forEach((name,i)=>{
-    const val=(data[i]&&data[i][dataKey])||'unmarked';
-    const label=rLabel(val);
-    rows+=`<tr><td class="td-num">${i+1}</td><td class="td-name">${name}</td><td><button class="rating-btn ${val}" onclick="cycleRating(${i})">${RATING_ICON[val]} ${label}</button></td></tr>`;
-  });
-  document.getElementById('proj-body').innerHTML=rows;
-}
-function cycleRating(idx){
-  const proj=PROJECTS[curProj];
-  const part=PARTS[curPart];
-  const dataKey=proj.key+'_'+part.key;
-  const data=getProjects(curClass);
-  const cur=(data[idx]&&data[idx][dataKey])||'unmarked';
-  const next=RATINGS[(RATINGS.indexOf(cur)+1)%RATINGS.length];
-  setProjVal(curClass, idx, dataKey, next);
-  renderProjects();
-}
-function renderHW(){
-  const data=getHW(curClass);
-  const L=lang==='en';
-  let rows='';
-  C[curClass].forEach((name,i)=>{
-    const done=data[i]||false;
-    const label=done?(L?'✓ Done':'✓ تم'):(L?'✗ Not Yet':'✗ لم يسلم');
-    rows+=`<tr><td class="td-num">${i+1}</td><td class="td-name">${name}</td><td><button class="hw-toggle ${done?'done':'pending'}" onclick="toggleHW(${i})">${label}</button></td></tr>`;
-  });
-  document.getElementById('hw-body').innerHTML=rows;
-}
-function toggleHW(idx){
-  const data=getHW(curClass);
-  const newVal = !data[idx];
-  setHWVal(curClass, idx, newVal);
-  renderHW();
-}
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px
+    }
 
-// ============================================================
-// HISTORY
-// ============================================================
-function renderHistory(){
-  const L=lang==='en';
-  let html='<div style="font-size:.78rem;color:#64748b;margin-bottom:12px">'+(L?'Attendance records for Class 1/'+curClass:'سجل الحضور للصف 1/'+curClass)+'</div>';
-  let found=false;
-  for(let w=1;w<=15;w++){
-    for(let d=0;d<5;d++){
-      const key=`${curClass}_${w}_${d}`;
-      const data=attData[key];
-      if(data && data.length){
-        found=true;
-        const p=data.filter(s=>s==='present').length;
-        const a=data.filter(s=>s==='absent').length;
-        html+=`<div class="prog-row"><span>${L?'Week':'الأسبوع'} ${w} - ${L?DAYS_EN[d]:DAYS_AR[d]}</span><span class="stat green" style="padding:2px 6px;font-size:.65rem">${p} ${L?'P':'ح'}</span><span class="stat red" style="padding:2px 6px;font-size:.65rem">${a} ${L?'A':'غ'}</span></div>`;
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: .68rem;
+      color: #64748b
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%
+    }
+
+    .bulk-btns {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px
+    }
+
+    .bulk-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .68rem;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .bulk-btn.green {
+      background: var(--green-bg);
+      color: var(--green-txt)
+    }
+
+    .bulk-btn.red {
+      background: var(--red-bg);
+      color: var(--red-txt)
+    }
+
+    .bulk-btn.slate {
+      background: #e2e8f0;
+      color: #475569
+    }
+
+    .stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px
+    }
+
+    .stat {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: .70rem;
+      font-weight: 500
+    }
+
+    .stat.green {
+      background: var(--green-bg);
+      color: var(--green-txt)
+    }
+
+    .stat.red {
+      background: var(--red-bg);
+      color: var(--red-txt)
+    }
+
+    .stat.amber {
+      background: var(--amber-bg);
+      color: var(--amber-txt)
+    }
+
+    .stat.slate {
+      background: #e2e8f0;
+      color: #475569
+    }
+
+    .table-wrap {
+      overflow-x: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      padding: 10px 6px;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9
+    }
+
+    th {
+      font-size: .70rem;
+      color: #64748b;
+      font-weight: 500
+    }
+
+    .td-num {
+      font-family: 'Poppins', sans-serif;
+      font-size: .72rem;
+      color: #94a3b8;
+      width: 28px
+    }
+
+    .td-name {
+      font-size: .80rem
+    }
+
+    .status-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .status-btn.unmarked {
+      background: #e2e8f0;
+      color: #94a3b8
+    }
+
+    .status-btn.present {
+      background: var(--green);
+      color: #fff
+    }
+
+    .status-btn.absent {
+      background: var(--red);
+      color: #fff
+    }
+
+    .status-btn.excused {
+      background: var(--amber);
+      color: #fff
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    .marks-sub-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px
+    }
+
+    .ms-tab {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: #f1f5f9;
+      font-family: inherit;
+      font-size: .72rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all .2s;
+      color: #64748b
+    }
+
+    .ms-tab.active {
+      background: var(--teal);
+      color: #fff
+    }
+
+    .sel-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      justify-content: center;
+      flex-wrap: wrap
+    }
+
+    .sel-row select {
+      padding: 8px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .78rem;
+      background: #fff
+    }
+
+    .rating-btn {
+      width: 100%;
+      padding: 8px 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: .72rem;
+      cursor: pointer;
+      transition: all .2s;
+      background: #fff;
+      text-align: center
+    }
+
+    .rating-btn.unmarked {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      color: #94a3b8
+    }
+
+    .rating-btn.acceptable {
+      background: var(--green-bg);
+      border-color: var(--green);
+      color: var(--green-txt)
+    }
+
+    .rating-btn.brilliant {
+      background: var(--blue-bg);
+      border-color: var(--blue);
+      color: var(--blue-txt)
+    }
+
+    .rating-btn.masterpiece {
+      background: var(--purple-bg);
+      border-color: var(--purple);
+      color: var(--purple-txt)
+    }
+
+    .hw-toggle {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: .75rem;
+      cursor: pointer;
+      transition: all .2s;
+      background: #fff
+    }
+
+    .hw-toggle.done {
+      background: var(--green-bg);
+      border-color: var(--green);
+      color: var(--green-txt)
+    }
+
+    .hw-toggle.pending {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      color: #94a3b8
+    }
+
+    .student-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 16px;
+      box-shadow: var(--shadow)
+    }
+
+    .student-title {
+      font-family: 'Amiri', serif;
+      font-size: 1.1rem;
+      text-align: center;
+      margin-bottom: 16px;
+      color: var(--teal-d)
+    }
+
+    .prog-section {
+      margin-bottom: 20px
+    }
+
+    .prog-header {
+      font-size: .80rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .prog-grid {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 3px
+    }
+
+    .prog-cell {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      font-size: .5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .prog-cell.present {
+      background: var(--green)
+    }
+
+    .prog-cell.absent {
+      background: var(--red)
+    }
+
+    .prog-cell.excused {
+      background: var(--amber)
+    }
+
+    .prog-cell.unmarked {
+      background: #e2e8f0
+    }
+
+    .prog-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: .78rem
+    }
+
+    .prog-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: .70rem;
+      font-weight: 500
+    }
+
+    .prog-badge.acceptable {
+      background: var(--green-bg);
+      color: var(--green-txt)
+    }
+
+    .prog-badge.brilliant {
+      background: var(--blue-bg);
+      color: var(--blue-txt)
+    }
+
+    .prog-badge.masterpiece {
+      background: var(--purple-bg);
+      color: var(--purple-txt)
+    }
+
+    .prog-badge.pending {
+      background: #e2e8f0;
+      color: #64748b
+    }
+
+    .prog-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px
+    }
+
+    .prog-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal), var(--teal-l));
+      border-radius: 4px;
+      transition: width .3s
+    }
+
+    .project-header {
+      background: linear-gradient(90deg, var(--teal-50), transparent);
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: .78rem;
+      color: var(--teal-d)
+    }
+
+    .pin-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px)
+    }
+
+    .pin-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 320px;
+      text-align: center
+    }
+
+    .pin-title {
+      font-family: 'Amiri', serif;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      color: var(--teal-d)
+    }
+
+    .pin-sub {
+      font-size: .75rem;
+      color: #64748b;
+      margin-bottom: 16px
+    }
+
+    .pin-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.2rem;
+      text-align: center;
+      letter-spacing: 8px;
+      margin-bottom: 12px
+    }
+
+    .pin-input:focus {
+      outline: none;
+      border-color: var(--teal)
+    }
+
+    .pin-btns {
+      display: flex;
+      gap: 8px
+    }
+
+    .pin-btns button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .78rem;
+      cursor: pointer
+    }
+
+    .pin-btns .cancel {
+      background: #e2e8f0;
+      color: #475569
+    }
+
+    .pin-btns .submit {
+      background: var(--teal);
+      color: #fff
+    }
+
+    .pin-error {
+      color: var(--red);
+      font-size: .72rem;
+      margin-top: 8px
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      flex-direction: column;
+      gap: 16px
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 1s linear infinite
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
       }
     }
-  }
-  if(!found) html+='<div style="text-align:center;color:#94a3b8;padding:20px">'+(L?'No records yet':'لا يوجد سجلات')+'</div>';
-  document.getElementById('history-content').innerHTML=html;
-}
 
-// ============================================================
-// STUDENT VIEW
-// ============================================================
-function onStuClassChange(){
-  const cls=+document.getElementById('stu-class').value;
-  const ns=document.getElementById('stu-name');
-  ns.innerHTML='<option value="">'+(lang==='en'?'Select Name':'اختر الاسم')+'</option>';
-  C[cls].forEach((name,i)=>{
-    const o=document.createElement('option');
-    o.value=i;
-    o.textContent=name;
-    ns.appendChild(o);
-  });
-  document.getElementById('student-progress').innerHTML='';
-}
-function showStudentProgress(){
-  const cls=+document.getElementById('stu-class').value;
-  const idx=document.getElementById('stu-name').value;
-  if(idx==='') return;
-  const i=+idx;
-  const L=lang==='en';
-  
-  // Attendance grid
-  let attHtml='<div class="prog-section"><div class="prog-header">📋 '+(L?'Attendance (15 Weeks)':'الحضور (15 أسبوع)')+'</div><div class="prog-grid">';
-  let totalDays=0,presentDays=0;
-  for(let w=1;w<=15;w++){
-    for(let d=0;d<5;d++){
-      const key=`${cls}_${w}_${d}`;
-      const data=attData[key]||[];
-      const s=data[i]||'unmarked';
-      if(s!=='unmarked') totalDays++;
-      if(s==='present') presentDays++;
-      attHtml+=`<div class="prog-cell ${s}" title="${L?'Week':'أسبوع'} ${w} ${L?DAYS_EN[d]:DAYS_AR[d]}"></div>`;
+    .loading-text {
+      font-size: .85rem;
+      color: #64748b
     }
-  }
-  const attRate=totalDays>0?Math.round(presentDays/totalDays*100):0;
-  attHtml+=`</div><div style="margin-top:8px;font-size:.72rem;color:#64748b">${L?'Attendance Rate':'نسبة الحضور'}: ${attRate}%</div><div class="prog-bar"><div class="prog-fill" style="width:${attRate}%"></div></div></div>`;
-  
-  // Projects
-  const projs=getProjects(cls);
-  let projHtml='<div class="prog-section"><div class="prog-header">🏆 '+(L?'Projects':'المشاريع')+'</div>';
-  PROJECTS.forEach(proj=>{
-    projHtml+=`<div class="project-header">${L?proj.en:proj.ar}</div>`;
-    PARTS.forEach(part=>{
-      const dataKey=proj.key+'_'+part.key;
-      const rating=(projs[i]&&projs[i][dataKey])||'unmarked';
-      const label=rLabel(rating);
-      projHtml+=`<div class="prog-row"><span>${L?part.en:part.ar}</span><span class="prog-badge ${rating}">${RATING_ICON[rating]} ${label}</span></div>`;
-    });
-  });
-  projHtml+='</div>';
-  
-  // Homework
-  const hw=getHW(cls);
-  const hwDone=hw[i]||false;
-  const hwHtml=`<div class="prog-section"><div class="prog-header">📓 ${L?'Homework':'الواجبات'}</div><div class="prog-row"><span>${L?'Status':'الحالة'}</span><span class="prog-badge ${hwDone?'acceptable':'pending'}">${hwDone?(L?'✓ Submitted':'✓ تم التسليم'):(L?'✗ Not Yet':'✗ لم يسلم')}</span></div></div>`;
-  
-  document.getElementById('student-progress').innerHTML=attHtml+projHtml+hwHtml;
-}
 
-// Listen for real-time updates
-db.ref('/').on('value', (snapshot) => {
-  const data = snapshot.val() || {};
-  attData = data.att || {};
-  hwData = data.hw || {};
-  projData = data.projs || {};
-  render();
-});
-</script>
+    @media(max-width:400px) {
+      .header h1 {
+        font-size: 1.4rem
+      }
+
+      .mode-btn {
+        font-size: .68rem;
+        padding: 6px 10px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="loading-overlay" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text"><span class="ar">جاري تحميل البيانات...</span><span class="en">Loading data...</span>
+    </div>
+  </div>
+
+  <button class="lang-btn" onclick="toggleLang()">EN</button>
+  <div class="sync-status online" id="sync-status">● <span class="ar">متصل</span><span class="en">Online</span></div>
+
+  <header class="header">
+    <h1 id="header-title">📚 سجل متابعة استاذ رياض<br><span
+        style="font-family:'Poppins',sans-serif;font-size:.52rem;opacity:.55;font-weight:400">Mr.Riyadh Progress
+        Record</span></h1>
+    <div class="sub" id="header-sub">مدرسة المروة المتوسطة · اللغة الإنجليزية<br><span
+        style="font-family:'Poppins',sans-serif;font-size:.88em;opacity:.8">Al-Marwa Middle School · English</span>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn" id="btn-teacher" onclick="showTeacher()">👨‍🏫 <span class="ar">وضع المعلم</span><span
+          class="en">Teacher</span></button>
+      <button class="mode-btn active" id="btn-student" onclick="showStudent()">👨‍🎓 <span class="ar">وضع
+          الطالب</span><span class="en">Student</span></button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="class-tabs" class="class-tabs"></div>
+
+    <!-- TEACHER MODE -->
+    <div id="teacher-view" class="hidden">
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-att-btn" onclick="setTab('att')">📋 <span class="ar">الحضور</span><span
+            class="en">Attendance</span></button>
+        <button class="tab-btn" id="tab-marks-btn" onclick="setTab('marks')">📝 <span class="ar">المتابعة</span><span
+            class="en">Progress</span></button>
+        <button class="tab-btn" id="tab-hist-btn" onclick="setTab('hist')">📅 <span class="ar">السجل</span><span
+            class="en">History</span></button>
+      </div>
+
+      <!-- ATTENDANCE TAB -->
+      <div id="tab-att" class="card">
+        <div class="date-row">
+          <select id="sel-week" onchange="render()"></select>
+          <select id="sel-day" onchange="render()"></select>
+        </div>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--green)"></div><span class="ar">حاضر</span><span
+              class="en">Present</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--red)"></div><span class="ar">غائب</span><span
+              class="en">Absent</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--amber)"></div><span class="ar">معفى</span><span
+              class="en">Excused</span>
+          </div>
+        </div>
+        <div class="bulk-btns">
+          <button class="bulk-btn green" onclick="markAll('present')">✓ <span class="ar">حضور الكل</span><span
+              class="en">All Present</span></button>
+          <button class="bulk-btn red" onclick="markAll('absent')">✗ <span class="ar">غياب الكل</span><span
+              class="en">All Absent</span></button>
+          <button class="bulk-btn slate" onclick="markAll('unmarked')">🗑 <span class="ar">مسح</span><span
+              class="en">Clear</span></button>
+        </div>
+        <div class="stats" id="stats"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th><span class="ar">الطالب</span><span class="en">Student</span></th>
+                <th><span class="ar">الحضور</span><span class="en">Status</span></th>
+              </tr>
+            </thead>
+            <tbody id="att-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MARKS TAB -->
+      <div id="tab-marks" class="card hidden">
+        <div class="marks-sub-tabs">
+          <button class="ms-tab active" id="mtab-proj" onclick="setMarksTab('proj')">🏆 <span
+              class="ar">المشاريع</span><span class="en">Projects</span></button>
+          <button class="ms-tab" id="mtab-hw" onclick="setMarksTab('hw')">📓 <span class="ar">الواجبات</span><span
+              class="en">Homework</span></button>
+        </div>
+        <div id="sub-proj">
+          <div class="sel-row">
+            <select id="sel-proj" onchange="renderProjects()"></select>
+            <select id="sel-part" onchange="renderProjects()"></select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span class="ar">الطالب</span><span class="en">Student</span></th>
+                  <th><span class="ar">التقييم</span><span class="en">Rating</span></th>
+                </tr>
+              </thead>
+              <tbody id="proj-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="sub-hw" class="hidden">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span class="ar">الطالب</span><span class="en">Student</span></th>
+                  <th><span class="ar">الواجب</span><span class="en">Homework</span></th>
+                </tr>
+              </thead>
+              <tbody id="hw-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY TAB -->
+      <div id="tab-hist" class="card hidden">
+        <div id="history-content"></div>
+      </div>
+    </div>
+
+    <!-- STUDENT MODE -->
+    <div id="student-view">
+      <div class="student-card">
+        <div class="student-title" id="student-title"><span class="ar">اطلع على متابعتك</span><span class="en">Check
+            Your Progress</span></div>
+        <div class="date-row">
+          <select id="stu-class" onchange="onStuClassChange()"></select>
+          <select id="stu-name" onchange="showStudentProgress()"></select>
+        </div>
+        <div id="student-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIN OVERLAY -->
+  <div id="pin-overlay" class="pin-overlay hidden">
+    <div class="pin-box">
+      <div class="pin-title"><span class="ar">الوصول المحمي</span><span class="en">Protected Access</span></div>
+      <div class="pin-sub"><span class="ar">أدخل الرقم السري للدخول</span><span class="en">Enter PIN to access Teacher
+          Mode</span></div>
+      <input type="password" id="pin-input" class="pin-input" maxlength="6" placeholder="••••••">
+      <div class="pin-btns">
+        <button class="cancel" onclick="cancelPin()"><span class="ar">إلغاء</span><span
+            class="en">Cancel</span></button>
+        <button class="submit" onclick="submitPin()"><span class="ar">دخول</span><span class="en">Enter</span></button>
+      </div>
+      <div class="pin-error hidden" id="pin-error"><span class="ar">رقم خاطئ</span><span class="en">Incorrect PIN</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // FIREBASE CONFIG
+    // ============================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyC9xG4MJtIbONhTMPBNpr16LA_pL4Er7QU",
+      authDomain: "riadh-tracker.firebaseapp.com",
+      databaseURL: "https://riadh-tracker-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "riadh-tracker",
+      storageBucket: "riadh-tracker.firebasestorage.app",
+      messagingSenderId: "642829998259",
+      appId: "1:642829998259:web:02683526c97bb675fa78c6"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ============================================================
+    // DATA
+    // ============================================================
+    const C = {
+      1: ["ابراهيم بندر الزهراني", "البراء عبدالغني المصباحي", "أمير متعب الغامدي", "أنس خالد باقيس", "بدر هشام العلوني", "بسام أيمن الغامدي", "تركي إبراهيم زغبي", "تيم إياد أبو فول", "تيم محمد البطريخي", "ثامر أحمد الزهراني", "حسن يوسف الدوري", "راكان محمد العلياني", "رسول أحمد غزواني", "سعود خالد", "عبدالرحمن أحمد القشاش", "عبدالرحمن عبدالله بابعير", "عبدالرحمن فهد الحمود الزهراني", "عبدالعزيز سلطان الأحمدي", "عبدالله أحمد برعيه", "عبدالله علي خشرم الشمري", "عثمان محمد بن محفوظ", "عمر سلطان السحيمي", "فراس حيان الغفري", "فيصل عبدالعزيز العمودي", "قاسم علي ديبان", "محمد سليمان الزهراني", "محمد ظافر العمري", "مروان معتصم عبدالحفيظ", "ناصر محسن المولد", "ياسر محمد قاسم", "يزن أحمد عبدالعزيز", "يزن ياسر العكبري", "يوسف طه جداوى", "يوسف محمد الخرساني", "يونس عبدالعزيز العمودي"],
+      2: ["إبراهيم حسين الكاف", "أحمد عبدالرحمن البارقي", "أسامه حمزة مراد", "أسامه عبدالله عبدالله", "الوليد نادر باديي", "أنس محمد باشماخ", "أويس عبدالرحمن باحسين", "بتال فهد حمدان", "تميم عبدالله البكري", "توفيق الماحي حمد النيل", "حمزة محمود طيبة", "خالد عبدالله الثقفي", "رائد عبدالقادر شوق", "راشد طارق باجمال", "زيد شريف باقير", "سهيل حسن الجهني", "صالح محمد بانشوان", "عبدالرحمن جهاد العطاس", "عبدالعزيز حسن العطاس", "عبدالعزيز عبدالله العرشي", "عبدالكريم مجد صوي", "عبدالله شرف قصير", "عبدالمجيد ناصر البديني", "عمر محمد أبوعيران", "عمر يسري شعلان", "كريم محمد أحمد ناصيف", "محسن مطهر الفقيه", "محمد فيصل الزهراني", "مؤيد أنس مصلح", "نواف نائف الصليلي", "وهاج أحمد الشرفي", "يوسف تيسير الدوليبي", "يوسف سامر عاصم", "يوسف محمد المنصوري", "يوسف نزيه القاسم"],
+      3: ["أحمد يحيى عبسى", "أسامه رمزي صالح", "أسامه هاني عبده", "إياد علي الناشري", "جعفر محمد السقاف", "جواد حسام السلمي", "جواد يحيى عطيف", "حسام عدنان الكاف", "حسين سالم بالخير", "خالد علي القرني", "خالد عماد العطاس", "ريان سهيل باسهيل", "سامر هاني الشطيري", "عبدالرحمن صالح العطاس", "عبدالرحمن نزار باعوافي", "عبدالعزيز حسن سعيد", "عبدالله أحمد بارشيد", "عبدالله سامي زغفي", "علي إبراهيم الحربي", "عمر حاتم القشاش", "عوام عبدالرحمن السيالي", "كريم عصام أبوزور", "كريم مرهف شما", "لؤي حمود السبيعي", "مؤيد أحمد بيني", "محمد جمال الزهراني", "ميار وائل سعد", "وسام أحمد العبسي", "يزن بلال سليمان", "يزن خالد فكي", "يزن عمر الصدفاء", "يونس عويض الزهراني"],
+      4: ["أحمد حمود درّاج", "أحمد سعيد بالبيد", "المؤيد بسام سخنيني", "أمير هاشل القرني", "أمير وائل صالح", "تامر منصور حكمي", "تميم سعد السلمي", "تميم محمد التميمي", "خالد عبدالرحمن الصعب", "خالد محمد العبدي", "زياد وليد باقبص", "سعود خالد القرشي", "سعود محمد المطيري", "سلام عابد اللحياني", "صالح سالم الزهراني", "عبدالرحمن علي الزهراني", "عبدالرحمن هاني ناجي", "عبدالعزيز خالد الزهراني", "عبدالعزيز علي العلي", "علي عبدالله بامطرف", "عمار عبدالعزيز دويد", "عمر سليم جاموس", "عمران عمار حمو", "فواز محمد السبيعي", "قصي بن طلال بن نقلي", "كنان بن محمد آل خصفان القرني", "محمد شادي غبون", "محمد عبدالعزيز دويد", "محمد علي عتين", "محمد يحيى حمدي", "مراد عباس مشيم", "مشعل محمد اللقماني", "مهند سامي الحربي", "مهند عبدالمنعم البيشي", "يزن آدم الصبياني"],
+      5: ["إبراهيم عبد الفتاح محمد", "أحمد جهاد العطاس", "أحمد هيثم حمدون", "أنس أحمد الحارثي", "أمير القرني", "بتال عبدالله السهلي", "جسار عبدالله الزهراني", "حارث هلال الحارثي", "حمزه محمد العطاس", "خالد عبدالرحمن محمد علي ملا", "خالد محمد القطروس", "خلدون توفيق سيف", "رائد فتيني مجهص", "رامي صالح صبياني", "رياض لطف المطحني", "ريان أيمن العكبري", "سالم نايف النهدي", "سعد صابر فريد", "سعد العولقي", "سعيد عبدالله باقفة", "سلطان عادل الجفري", "سيف عادل بامنصور", "عبدالرحمن عبدالعزيز أفضل", "عبدالرحمن عبدالله الشهري", "عبدالرحيم حسن المهجوس", "عبدالعزيز أحمد بارحيم", "عساف رضي المحوري", "علي عسكر آل سعد", "فهد عبدالعزيز الزهراني", "فهد هاشم الظاهري", "محمد عبدالرحمن الزهراني", "معين مهران الزهارنة", "يزن علاء باكريم", "يوسف محمد غزواني", "أحمد محمد بازرعه"],
+      6: ["إبراهيم محسن باجابر", "أحمد سعدي سرداح", "أديب مشعل الشائع", "أوس عبدالرحمن عسيري", "حيدر ناصر فرحان", "خالد وليد التميمي", "رامي نافذ البنا", "زياد ياسر السلمي", "عبدالرحمن نواف السالمي", "عبدالله عائض الحربي", "عبدالمجيد حسين العمودي", "فراس محمد القرني", "فهد سالم باحسن", "فهد عبدالعزيز الزهراني", "فيصل حاتم زعرب", "فيصل فايز حلواني", "قيس أحمد مبارك", "ليث تامر الأمير", "ماجد صالح الصحفي", "مؤيد أحمد السقاف", "مؤيد عثمان العمودي", "محمد أحمد بازهير", "محمد رائد أبوالزوائد", "محمد عادل باجندوح", "محمد عبدالله الهدار", "معاذ عمار الخطيب", "ميادي وليد المحوري", "نايف أحمد حميد", "هاشم محمد العمري", "وسام علي الجهني", "يامن عبدالباري بطيلي", "يزن محمد الزهراني", "يوسف خالد الصلاحي", "يوسف سعد الحاج عمير", "يوسف هاشم الكاف", "فهد محمد الزهراني"]
+    };
+
+    // 3 PROJECTS, EACH WITH 3 PARTS
+    const PROJECTS = [
+      { key: 'proj1', ar: 'المشروع الأول', en: 'Project 1' },
+      { key: 'proj2', ar: 'المشروع الثاني', en: 'Project 2' },
+      { key: 'proj3', ar: 'المشروع الثالث', en: 'Project 3' }
+    ];
+    const PARTS = [
+      { key: 'part1', ar: 'الجزء الأول', en: 'Part 1' },
+      { key: 'part2', ar: 'الجزء الثاني', en: 'Part 2' },
+      { key: 'part3', ar: 'الجزء الثالث', en: 'Part 3' }
+    ];
+    const RATINGS = ['unmarked', 'acceptable', 'brilliant', 'masterpiece'];
+    const RATING_AR = { unmarked: 'غير محدد', acceptable: 'مقبول', brilliant: 'ممتاز', masterpiece: 'تحفة فنية' };
+    const RATING_EN = { unmarked: 'Not Rated', acceptable: 'Acceptable', brilliant: 'Brilliant', masterpiece: 'Masterpiece' };
+    const RATING_ICON = { unmarked: '?', acceptable: '✓', brilliant: '⭐', masterpiece: '🏆' };
+
+    const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+    const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
+    const PIN = '#1984#';
+
+    let lang = 'ar';
+    let curClass = 1;
+    let curWeek = 1;
+    let curDay = 0;
+    let curTab = 'att';
+    let curMarksTab = 'proj';
+    let curProj = 0;
+    let curPart = 0;
+    let isTeacher = false;
+
+    // Firebase data cache
+    let attData = {};
+    let hwData = {};
+    let projData = {};
+
+    // ============================================================
+    // FIREBASE FUNCTIONS
+    // ============================================================
+    function setSyncStatus(status) {
+      const el = document.getElementById('sync-status');
+      el.className = 'sync-status ' + status;
+      const L = lang === 'en';
+      if (status === 'online') el.innerHTML = '● ' + (L ? 'Online' : 'متصل');
+      else if (status === 'offline') el.innerHTML = '○ ' + (L ? 'Offline' : 'غير متصل');
+      else el.innerHTML = '◌ ' + (L ? 'Syncing...' : 'جاري المزامنة...');
+    }
+
+    async function loadAllData() {
+      try {
+        setSyncStatus('syncing');
+        const snapshot = await db.ref('/').once('value');
+        const data = snapshot.val() || {};
+        attData = data.att || {};
+        hwData = data.hw || {};
+        projData = data.projs || {};
+        setSyncStatus('online');
+        document.getElementById('loading').classList.add('hidden');
+        render();
+      } catch (e) {
+        console.error('Load error:', e);
+        setSyncStatus('offline');
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    function getAttKey() { return `${curClass}_${curWeek}_${curDay}`; }
+    function getAtt() { return attData[getAttKey()] || []; }
+    function setAtt(arr) {
+      const key = getAttKey();
+      attData[key] = arr;
+      db.ref('att/' + key).set(arr);
+    }
+
+    function getHW(cls) { return hwData[cls] || []; }
+    function setHWVal(cls, idx, val) {
+      if (!hwData[cls]) hwData[cls] = [];
+      hwData[cls][idx] = val;
+      db.ref('hw/' + cls).set(hwData[cls]);
+    }
+
+    function getProjects(cls) { return projData[cls] || {}; }
+    function setProjVal(cls, idx, key, val) {
+      if (!projData[cls]) projData[cls] = {};
+      if (!projData[cls][idx]) projData[cls][idx] = {};
+      projData[cls][idx][key] = val;
+      db.ref('projs/' + cls + '/' + idx).set(projData[cls][idx]);
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    (function init() {
+      // Class tabs
+      const wrap = document.getElementById('class-tabs');
+      for (let i = 1; i <= 6; i++) {
+        const b = document.createElement('button');
+        b.className = 'class-tab' + (i === 1 ? ' active' : '');
+        b.textContent = '1/' + i;
+        b.onclick = () => setClass(i);
+        wrap.appendChild(b);
+      }
+      // Week selector
+      const ws = document.getElementById('sel-week');
+      for (let w = 1; w <= 15; w++) {
+        const o = document.createElement('option');
+        o.value = w;
+        o.textContent = (lang === 'en' ? 'Week ' : 'الأسبوع ') + w;
+        ws.appendChild(o);
+      }
+      // Day selector
+      const ds = document.getElementById('sel-day');
+      for (let d = 0; d < 5; d++) {
+        const o = document.createElement('option');
+        o.value = d;
+        o.textContent = lang === 'en' ? DAYS_EN[d] : DAYS_AR[d];
+        ds.appendChild(o);
+      }
+      // Project selector
+      const ps = document.getElementById('sel-proj');
+      PROJECTS.forEach((p, i) => {
+        const o = document.createElement('option');
+        o.value = i;
+        o.textContent = lang === 'en' ? p.en : p.ar;
+        ps.appendChild(o);
+      });
+      // Part selector
+      const pts = document.getElementById('sel-part');
+      PARTS.forEach((p, i) => {
+        const o = document.createElement('option');
+        o.value = i;
+        o.textContent = lang === 'en' ? p.en : p.ar;
+        pts.appendChild(o);
+      });
+      // Student class selector
+      const sc = document.getElementById('stu-class');
+      for (let i = 1; i <= 6; i++) {
+        const o = document.createElement('option');
+        o.value = i;
+        o.textContent = (lang === 'en' ? 'Class ' : 'الصف ') + '1/' + i;
+        sc.appendChild(o);
+      }
+
+      applyLang();
+      loadAllData();
+      // Start in student mode by default - teacher mode requires PIN
+      onStuClassChange();
+    })();
+
+    // ============================================================
+    // LANG
+    // ============================================================
+    function toggleLang() {
+      lang = lang === 'ar' ? 'en' : 'ar';
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      document.querySelector('.lang-btn').textContent = lang === 'ar' ? 'EN' : 'ع';
+      applyLang();
+      render();
+    }
+    function applyLang() {
+      document.querySelectorAll('.ar').forEach(e => e.style.display = lang === 'ar' ? '' : 'none');
+      document.querySelectorAll('.en').forEach(e => e.style.display = lang === 'en' ? '' : 'none');
+      document.getElementById('sel-week').querySelectorAll('option').forEach((o, i) => {
+        o.textContent = (lang === 'en' ? 'Week ' : 'الأسبوع ') + (i + 1);
+      });
+      document.getElementById('sel-day').querySelectorAll('option').forEach((o, i) => {
+        o.textContent = lang === 'en' ? DAYS_EN[i] : DAYS_AR[i];
+      });
+      document.getElementById('sel-proj').querySelectorAll('option').forEach((o, i) => {
+        o.textContent = lang === 'en' ? PROJECTS[i].en : PROJECTS[i].ar;
+      });
+      document.getElementById('sel-part').querySelectorAll('option').forEach((o, i) => {
+        o.textContent = lang === 'en' ? PARTS[i].en : PARTS[i].ar;
+      });
+      document.getElementById('stu-class').querySelectorAll('option').forEach((o, i) => {
+        o.textContent = (lang === 'en' ? 'Class ' : 'الصف ') + '1/' + (i + 1);
+      });
+    }
+    function rLabel(r) { return lang === 'en' ? RATING_EN[r] : RATING_AR[r]; }
+
+    // ============================================================
+    // MODE SWITCHING
+    // ============================================================
+    function showTeacher() {
+      if (!isTeacher) {
+        document.getElementById('pin-overlay').classList.remove('hidden');
+        document.getElementById('pin-input').value = '';
+        document.getElementById('pin-input').focus();
+        return;
+      }
+      document.getElementById('btn-teacher').classList.add('active');
+      document.getElementById('btn-student').classList.remove('active');
+      document.getElementById('teacher-view').classList.remove('hidden');
+      document.getElementById('student-view').classList.add('hidden');
+    }
+    function showStudent() {
+      document.getElementById('btn-student').classList.add('active');
+      document.getElementById('btn-teacher').classList.remove('active');
+      document.getElementById('student-view').classList.remove('hidden');
+      document.getElementById('teacher-view').classList.add('hidden');
+      onStuClassChange();
+    }
+    function submitPin() {
+      const val = document.getElementById('pin-input').value;
+      if (val === PIN) {
+        isTeacher = true;
+        document.getElementById('pin-overlay').classList.add('hidden');
+        document.getElementById('pin-error').classList.add('hidden');
+        showTeacher();
+      } else {
+        document.getElementById('pin-error').classList.remove('hidden');
+      }
+    }
+    function cancelPin() {
+      document.getElementById('pin-overlay').classList.add('hidden');
+      showStudent();
+    }
+
+    // ============================================================
+    // CLASS & TAB
+    // ============================================================
+    function setClass(c) {
+      curClass = c;
+      document.querySelectorAll('.class-tab').forEach((b, i) => b.classList.toggle('active', i + 1 === c));
+      render();
+      if (curTab === 'marks') renderMarks();
+      if (curTab === 'hist') renderHistory();
+    }
+    function setTab(t) {
+      curTab = t;
+      document.getElementById('tab-att-btn').classList.toggle('active', t === 'att');
+      document.getElementById('tab-marks-btn').classList.toggle('active', t === 'marks');
+      document.getElementById('tab-hist-btn').classList.toggle('active', t === 'hist');
+      document.getElementById('tab-att').classList.toggle('hidden', t !== 'att');
+      document.getElementById('tab-marks').classList.toggle('hidden', t !== 'marks');
+      document.getElementById('tab-hist').classList.toggle('hidden', t !== 'hist');
+      if (t === 'marks') renderMarks();
+      if (t === 'hist') renderHistory();
+    }
+    function setMarksTab(t) {
+      curMarksTab = t;
+      document.getElementById('mtab-proj').classList.toggle('active', t === 'proj');
+      document.getElementById('mtab-hw').classList.toggle('active', t === 'hw');
+      document.getElementById('sub-proj').classList.toggle('hidden', t !== 'proj');
+      document.getElementById('sub-hw').classList.toggle('hidden', t !== 'hw');
+      renderMarks();
+    }
+
+    // ============================================================
+    // RENDER
+    // ============================================================
+    function render() {
+      curWeek = +document.getElementById('sel-week').value;
+      curDay = +document.getElementById('sel-day').value;
+      const data = getAtt();
+      const students = C[curClass];
+      let present = 0, absent = 0, excused = 0;
+      let rows = '';
+      students.forEach((name, i) => {
+        const s = data[i] || 'unmarked';
+        if (s === 'present') present++;
+        if (s === 'absent') absent++;
+        if (s === 'excused') excused++;
+        const icon = s === 'present' ? '✓' : s === 'absent' ? '✗' : s === 'excused' ? '~' : '?';
+        rows += `<tr><td class="td-num">${i + 1}</td><td class="td-name">${name}</td><td><button class="status-btn ${s}" onclick="cycleStatus(${i})">${icon}</button></td></tr>`;
+      });
+      document.getElementById('att-body').innerHTML = rows;
+      const L = lang === 'en';
+      document.getElementById('stats').innerHTML = `
+    <span class="stat green">${L ? 'Present' : 'حاضر'}: ${present}</span>
+    <span class="stat red">${L ? 'Absent' : 'غائب'}: ${absent}</span>
+    <span class="stat amber">${L ? 'Excused' : 'معفى'}: ${excused}</span>
+    <span class="stat slate">${L ? 'Total' : 'المجموع'}: ${students.length}</span>
+  `;
+    }
+    function cycleStatus(idx) {
+      const data = getAtt();
+      const cur = data[idx] || 'unmarked';
+      const cycle = ['unmarked', 'present', 'absent', 'excused'];
+      const next = cycle[(cycle.indexOf(cur) + 1) % 4];
+      data[idx] = next;
+      setAtt(data);
+      render();
+    }
+    function markAll(status) {
+      const data = [];
+      C[curClass].forEach(() => data.push(status));
+      setAtt(data);
+      render();
+    }
+
+    // ============================================================
+    // MARKS
+    // ============================================================
+    function renderMarks() {
+      if (curMarksTab === 'proj') renderProjects();
+      else renderHW();
+    }
+    function renderProjects() {
+      curProj = +document.getElementById('sel-proj').value;
+      curPart = +document.getElementById('sel-part').value;
+      const proj = PROJECTS[curProj];
+      const part = PARTS[curPart];
+      const dataKey = proj.key + '_' + part.key;
+      const data = getProjects(curClass);
+      const L = lang === 'en';
+      let rows = '';
+      C[curClass].forEach((name, i) => {
+        const val = (data[i] && data[i][dataKey]) || 'unmarked';
+        const label = rLabel(val);
+        rows += `<tr><td class="td-num">${i + 1}</td><td class="td-name">${name}</td><td><button class="rating-btn ${val}" onclick="cycleRating(${i})">${RATING_ICON[val]} ${label}</button></td></tr>`;
+      });
+      document.getElementById('proj-body').innerHTML = rows;
+    }
+    function cycleRating(idx) {
+      const proj = PROJECTS[curProj];
+      const part = PARTS[curPart];
+      const dataKey = proj.key + '_' + part.key;
+      const data = getProjects(curClass);
+      const cur = (data[idx] && data[idx][dataKey]) || 'unmarked';
+      const next = RATINGS[(RATINGS.indexOf(cur) + 1) % RATINGS.length];
+      setProjVal(curClass, idx, dataKey, next);
+      renderProjects();
+    }
+    function renderHW() {
+      const data = getHW(curClass);
+      const L = lang === 'en';
+      let rows = '';
+      C[curClass].forEach((name, i) => {
+        const done = data[i] || false;
+        const label = done ? (L ? '✓ Done' : '✓ تم') : (L ? '✗ Not Yet' : '✗ لم يسلم');
+        rows += `<tr><td class="td-num">${i + 1}</td><td class="td-name">${name}</td><td><button class="hw-toggle ${done ? 'done' : 'pending'}" onclick="toggleHW(${i})">${label}</button></td></tr>`;
+      });
+      document.getElementById('hw-body').innerHTML = rows;
+    }
+    function toggleHW(idx) {
+      const data = getHW(curClass);
+      const newVal = !data[idx];
+      setHWVal(curClass, idx, newVal);
+      renderHW();
+    }
+
+    // ============================================================
+    // HISTORY
+    // ============================================================
+    function renderHistory() {
+      const L = lang === 'en';
+      let html = '<div style="font-size:.78rem;color:#64748b;margin-bottom:12px">' + (L ? 'Attendance records for Class 1/' + curClass : 'سجل الحضور للصف 1/' + curClass) + '</div>';
+      let found = false;
+      for (let w = 1; w <= 15; w++) {
+        for (let d = 0; d < 5; d++) {
+          const key = `${curClass}_${w}_${d}`;
+          const data = attData[key];
+          if (data && data.length) {
+            found = true;
+            const p = data.filter(s => s === 'present').length;
+            const a = data.filter(s => s === 'absent').length;
+            html += `<div class="prog-row"><span>${L ? 'Week' : 'الأسبوع'} ${w} - ${L ? DAYS_EN[d] : DAYS_AR[d]}</span><span class="stat green" style="padding:2px 6px;font-size:.65rem">${p} ${L ? 'P' : 'ح'}</span><span class="stat red" style="padding:2px 6px;font-size:.65rem">${a} ${L ? 'A' : 'غ'}</span></div>`;
+          }
+        }
+      }
+      if (!found) html += '<div style="text-align:center;color:#94a3b8;padding:20px">' + (L ? 'No records yet' : 'لا يوجد سجلات') + '</div>';
+      document.getElementById('history-content').innerHTML = html;
+    }
+
+    // ============================================================
+    // STUDENT VIEW
+    // ============================================================
+    function onStuClassChange() {
+      const cls = +document.getElementById('stu-class').value;
+      const ns = document.getElementById('stu-name');
+      ns.innerHTML = '<option value="">' + (lang === 'en' ? 'Select Name' : 'اختر الاسم') + '</option>';
+      C[cls].forEach((name, i) => {
+        const o = document.createElement('option');
+        o.value = i;
+        o.textContent = name;
+        ns.appendChild(o);
+      });
+      document.getElementById('student-progress').innerHTML = '';
+    }
+    function showStudentProgress() {
+      const cls = +document.getElementById('stu-class').value;
+      const idx = document.getElementById('stu-name').value;
+      if (idx === '') return;
+      const i = +idx;
+      const L = lang === 'en';
+      const studentName = C[cls][i];
+      const className = '1/' + cls;
+
+      // Student name & class header
+      let headerHtml = `<div style="text-align:center;margin-bottom:16px;padding:12px;background:linear-gradient(135deg,var(--teal-50),#fff);border-radius:12px;border:1px solid #e2e8f0">`;
+      headerHtml += `<div style="font-family:'Amiri',serif;font-size:1.15rem;color:var(--teal-d);font-weight:700">${studentName}</div>`;
+      headerHtml += `<div style="font-size:.72rem;color:#64748b;margin-top:4px">📚 ${L ? 'Class' : 'الصف'} ${className}</div>`;
+      headerHtml += `</div>`;
+
+      // Attendance grid
+      let attHtml = '<div class="prog-section"><div class="prog-header">📋 ' + (L ? 'Attendance (15 Weeks)' : 'الحضور (15 أسبوع)') + '</div><div class="prog-grid">';
+      let totalDays = 0, presentDays = 0;
+      for (let w = 1; w <= 15; w++) {
+        for (let d = 0; d < 5; d++) {
+          const key = `${cls}_${w}_${d}`;
+          const data = attData[key] || [];
+          const s = data[i] || 'unmarked';
+          if (s !== 'unmarked') totalDays++;
+          if (s === 'present') presentDays++;
+          attHtml += `<div class="prog-cell ${s}" title="${L ? 'Week' : 'أسبوع'} ${w} ${L ? DAYS_EN[d] : DAYS_AR[d]}"></div>`;
+        }
+      }
+      const attRate = totalDays > 0 ? Math.round(presentDays / totalDays * 100) : 0;
+      attHtml += `</div><div style="margin-top:8px;font-size:.72rem;color:#64748b">${L ? 'Attendance Rate' : 'نسبة الحضور'}: ${attRate}%</div><div class="prog-bar"><div class="prog-fill" style="width:${attRate}%"></div></div></div>`;
+
+      // Projects - show class name in section header
+      const projs = getProjects(cls);
+      let projHtml = '<div class="prog-section"><div class="prog-header">🏆 ' + (L ? 'Projects - Class ' : 'المشاريع - الصف ') + className + '</div>';
+      PROJECTS.forEach(proj => {
+        projHtml += `<div class="project-header">${L ? proj.en : proj.ar}</div>`;
+        PARTS.forEach(part => {
+          const dataKey = proj.key + '_' + part.key;
+          const rating = (projs[i] && projs[i][dataKey]) || 'unmarked';
+          const label = rLabel(rating);
+          projHtml += `<div class="prog-row"><span>${L ? part.en : part.ar}</span><span class="prog-badge ${rating}">${RATING_ICON[rating]} ${label}</span></div>`;
+        });
+      });
+      projHtml += '</div>';
+
+      // Homework
+      const hw = getHW(cls);
+      const hwDone = hw[i] || false;
+      const hwHtml = `<div class="prog-section"><div class="prog-header">📓 ${L ? 'Homework' : 'الواجبات'}</div><div class="prog-row"><span>${L ? 'Status' : 'الحالة'}</span><span class="prog-badge ${hwDone ? 'acceptable' : 'pending'}">${hwDone ? (L ? '✓ Submitted' : '✓ تم التسليم') : (L ? '✗ Not Yet' : '✗ لم يسلم')}</span></div></div>`;
+
+      document.getElementById('student-progress').innerHTML = headerHtml + attHtml + projHtml + hwHtml;
+    }
+
+    // Listen for real-time updates
+    db.ref('/').on('value', (snapshot) => {
+      const data = snapshot.val() || {};
+      attData = data.att || {};
+      hwData = data.hw || {};
+      projData = data.projs || {};
+      render();
+    });
+  </script>
 </body>
+
 </html>
