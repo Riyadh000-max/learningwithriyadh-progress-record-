@@ -754,6 +754,174 @@
       color: #64748b
     }
 
+    .overview-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow)
+    }
+
+    .overview-title {
+      font-family: 'Amiri', serif;
+      font-size: 1.1rem;
+      text-align: center;
+      margin-bottom: 4px;
+      color: var(--teal-d)
+    }
+
+    .overview-sub {
+      font-size: .72rem;
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 14px
+    }
+
+    .overview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .72rem
+    }
+
+    .overview-table th {
+      background: var(--teal);
+      color: #fff;
+      padding: 8px 6px;
+      text-align: right;
+      font-weight: 500;
+      white-space: nowrap
+    }
+
+    .overview-table td {
+      padding: 7px 6px;
+      border-bottom: 1px solid #f1f5f9;
+      text-align: right
+    }
+
+    .overview-table tr:nth-child(even) {
+      background: #f8fafc
+    }
+
+    .overview-table .num-col {
+      font-family: 'Poppins', sans-serif;
+      color: #94a3b8;
+      width: 28px;
+      text-align: center
+    }
+
+    .ov-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: .65rem;
+      font-weight: 500;
+      white-space: nowrap;
+      display: inline-block
+    }
+
+    .ov-badge.green {
+      background: var(--green-bg);
+      color: var(--green-txt)
+    }
+
+    .ov-badge.red {
+      background: var(--red-bg);
+      color: var(--red-txt)
+    }
+
+    .ov-badge.amber {
+      background: var(--amber-bg);
+      color: var(--amber-txt)
+    }
+
+    .ov-badge.blue {
+      background: var(--blue-bg);
+      color: var(--blue-txt)
+    }
+
+    .ov-badge.purple {
+      background: var(--purple-bg);
+      color: var(--purple-txt)
+    }
+
+    .ov-badge.slate {
+      background: #e2e8f0;
+      color: #64748b
+    }
+
+    .print-btn {
+      display: block;
+      margin: 14px auto 0;
+      padding: 10px 28px;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: background .2s
+    }
+
+    .print-btn:hover {
+      background: var(--teal-d)
+    }
+
+    @media print {
+      body {
+        background: #fff !important;
+      }
+
+      .header,
+      .class-tabs,
+      .tabs,
+      .mode-toggle,
+      .lang-btn,
+      .sync-status,
+      .loading-overlay,
+      .print-btn,
+      #tab-att,
+      #tab-marks,
+      #tab-hist,
+      #student-view,
+      #pin-overlay {
+        display: none !important
+      }
+
+      .container {
+        max-width: 100%;
+        padding: 0
+      }
+
+      .overview-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        border-radius: 0;
+        padding: 12px
+      }
+
+      .overview-table th {
+        background: #333 !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact
+      }
+
+      .overview-table tr:nth-child(even) {
+        background: #f5f5f5 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact
+      }
+
+      .ov-badge {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact
+      }
+
+      #tab-overview {
+        display: block !important
+      }
+    }
+
     @media(max-width:400px) {
       .header h1 {
         font-size: 1.4rem
@@ -804,6 +972,8 @@
             class="en">Progress</span></button>
         <button class="tab-btn" id="tab-hist-btn" onclick="setTab('hist')">📅 <span class="ar">السجل</span><span
             class="en">History</span></button>
+        <button class="tab-btn" id="tab-overview-btn" onclick="setTab('overview')">📊 <span class="ar">نظرة
+            عامة</span><span class="en">Overview</span></button>
       </div>
 
       <!-- ATTENDANCE TAB -->
@@ -894,6 +1064,13 @@
       <!-- HISTORY TAB -->
       <div id="tab-hist" class="card hidden">
         <div id="history-content"></div>
+      </div>
+
+      <!-- OVERVIEW RECORD TAB -->
+      <div id="tab-overview" class="hidden">
+        <div class="overview-card">
+          <div id="overview-content"></div>
+        </div>
       </div>
     </div>
 
@@ -1184,17 +1361,21 @@
       render();
       if (curTab === 'marks') renderMarks();
       if (curTab === 'hist') renderHistory();
+      if (curTab === 'overview') renderOverview();
     }
     function setTab(t) {
       curTab = t;
       document.getElementById('tab-att-btn').classList.toggle('active', t === 'att');
       document.getElementById('tab-marks-btn').classList.toggle('active', t === 'marks');
       document.getElementById('tab-hist-btn').classList.toggle('active', t === 'hist');
+      document.getElementById('tab-overview-btn').classList.toggle('active', t === 'overview');
       document.getElementById('tab-att').classList.toggle('hidden', t !== 'att');
       document.getElementById('tab-marks').classList.toggle('hidden', t !== 'marks');
       document.getElementById('tab-hist').classList.toggle('hidden', t !== 'hist');
+      document.getElementById('tab-overview').classList.toggle('hidden', t !== 'overview');
       if (t === 'marks') renderMarks();
       if (t === 'hist') renderHistory();
+      if (t === 'overview') renderOverview();
     }
     function setMarksTab(t) {
       curMarksTab = t;
@@ -1320,6 +1501,87 @@
       }
       if (!found) html += '<div style="text-align:center;color:#94a3b8;padding:20px">' + (L ? 'No records yet' : 'لا يوجد سجلات') + '</div>';
       document.getElementById('history-content').innerHTML = html;
+    }
+
+    // ============================================================
+    // OVERVIEW RECORD
+    // ============================================================
+    function renderOverview() {
+      const L = lang === 'en';
+      const cls = curClass;
+      const students = C[cls];
+      const className = '1/' + cls;
+      const projs = getProjects(cls);
+      const hw = getHW(cls);
+
+      let html = `<div class="overview-title">📊 ${L ? 'Overview Record' : 'سجل النظرة العامة'}</div>`;
+      html += `<div class="overview-sub">${L ? 'Class' : 'الصف'} ${className} — ${L ? 'Total Students' : 'عدد الطلاب'}: ${students.length}</div>`;
+
+      html += `<div class="table-wrap"><table class="overview-table">`;
+      // Table header
+      html += `<thead><tr>`;
+      html += `<th class="num-col">#</th>`;
+      html += `<th>${L ? 'Student Name' : 'اسم الطالب'}</th>`;
+      html += `<th>${L ? 'Present' : 'حضور'}</th>`;
+      html += `<th>${L ? 'Absent' : 'غياب'}</th>`;
+      html += `<th>${L ? 'Excused' : 'معفى'}</th>`;
+      html += `<th>${L ? 'Att %' : 'نسبة %'}</th>`;
+      PROJECTS.forEach(p => {
+        PARTS.forEach(pt => {
+          html += `<th>${L ? p.en + ' ' + pt.en : p.ar + ' ' + pt.ar}</th>`;
+        });
+      });
+      html += `<th>${L ? 'Homework' : 'الواجب'}</th>`;
+      html += `</tr></thead>`;
+
+      // Table body
+      html += `<tbody>`;
+      students.forEach((name, i) => {
+        let present = 0, absent = 0, excused = 0, total = 0;
+        for (let w = 1; w <= 15; w++) {
+          for (let d = 0; d < 5; d++) {
+            const key = `${cls}_${w}_${d}`;
+            const data = attData[key] || [];
+            const s = data[i] || 'unmarked';
+            if (s !== 'unmarked') total++;
+            if (s === 'present') present++;
+            if (s === 'absent') absent++;
+            if (s === 'excused') excused++;
+          }
+        }
+        const attRate = total > 0 ? Math.round(present / total * 100) : 0;
+        const attColor = attRate >= 80 ? 'green' : attRate >= 60 ? 'amber' : attRate > 0 ? 'red' : 'slate';
+
+        html += `<tr>`;
+        html += `<td class="num-col">${i + 1}</td>`;
+        html += `<td style="white-space:nowrap">${name}</td>`;
+        html += `<td><span class="ov-badge green">${present}</span></td>`;
+        html += `<td><span class="ov-badge red">${absent}</span></td>`;
+        html += `<td><span class="ov-badge amber">${excused}</span></td>`;
+        html += `<td><span class="ov-badge ${attColor}">${attRate}%</span></td>`;
+
+        PROJECTS.forEach(p => {
+          PARTS.forEach(pt => {
+            const dataKey = p.key + '_' + pt.key;
+            const rating = (projs[i] && projs[i][dataKey]) || 'unmarked';
+            const ratingColor = { unmarked: 'slate', acceptable: 'green', brilliant: 'blue', masterpiece: 'purple' }[rating];
+            html += `<td><span class="ov-badge ${ratingColor}">${RATING_ICON[rating]} ${rLabel(rating)}</span></td>`;
+          });
+        });
+
+        const hwDone = hw[i] || false;
+        html += `<td><span class="ov-badge ${hwDone ? 'green' : 'red'}">${hwDone ? (L ? '✓' : '✓') : (L ? '✗' : '✗')}</span></td>`;
+        html += `</tr>`;
+      });
+      html += `</tbody></table></div>`;
+
+      html += `<button class="print-btn" onclick="printOverview()">🖨️ ${L ? 'Print Record' : 'طباعة السجل'}</button>`;
+
+      document.getElementById('overview-content').innerHTML = html;
+    }
+
+    function printOverview() {
+      window.print();
     }
 
     // ============================================================
