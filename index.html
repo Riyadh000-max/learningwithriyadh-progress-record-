@@ -1562,6 +1562,8 @@
       const hw = getHW(cls);
 
       let html = `<div class="overview-title">📊 ${L ? 'Overview Record' : 'سجل النظرة العامة'}</div>`;
+      html += `<div style="text-align:center;font-size:.82rem;font-weight:600;color:#334155;margin-bottom:2px">👨‍🏫 ${L ? 'Mr. Riyadh' : 'أستاذ رياض'}</div>`;
+      html += `<div style="text-align:center;font-size:.68rem;color:#64748b;margin-bottom:6px">${L ? 'Al-Marwa Middle School · English' : 'مدرسة المروة المتوسطة · اللغة الإنجليزية'}</div>`;
       html += `<div class="overview-sub">${L ? 'Class' : 'الصف'} ${className} — ${L ? 'Total Students' : 'عدد الطلاب'}: ${students.length}</div>`;
 
       html += `<div class="table-wrap"><table class="overview-table">`;
