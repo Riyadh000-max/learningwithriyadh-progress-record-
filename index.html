@@ -867,8 +867,14 @@
     }
 
     @media print {
+      @page {
+        size: landscape;
+        margin: 8mm;
+      }
+
       body {
         background: #fff !important;
+        font-size: 9px !important;
       }
 
       .header,
@@ -889,21 +895,53 @@
 
       .container {
         max-width: 100%;
-        padding: 0
+        padding: 0;
+        overflow: visible !important;
+      }
+
+      #tab-overview {
+        display: block !important;
+        overflow: visible !important;
       }
 
       .overview-card {
         box-shadow: none;
-        border: 1px solid #ddd;
+        border: none;
         border-radius: 0;
-        padding: 12px
+        padding: 4px;
+        overflow: visible !important;
+      }
+
+      .table-wrap {
+        overflow: visible !important;
+      }
+
+      .overview-table {
+        width: 100% !important;
+        table-layout: auto !important;
+        font-size: 7px !important;
+        overflow: visible !important;
       }
 
       .overview-table th {
         background: #333 !important;
         color: #fff !important;
+        padding: 3px 2px !important;
+        font-size: 6.5px !important;
+        white-space: normal !important;
+        word-break: break-word;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact
+      }
+
+      .overview-table td {
+        padding: 3px 2px !important;
+        font-size: 7px !important;
+        white-space: nowrap;
+      }
+
+      .overview-table .num-col {
+        width: 16px !important;
       }
 
       .overview-table tr:nth-child(even) {
@@ -913,12 +951,21 @@
       }
 
       .ov-badge {
+        padding: 1px 3px !important;
+        font-size: 6px !important;
+        border-radius: 4px !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact
       }
 
-      #tab-overview {
-        display: block !important
+      .overview-title {
+        font-size: .9rem !important;
+        margin-bottom: 2px !important;
+      }
+
+      .overview-sub {
+        font-size: .6rem !important;
+        margin-bottom: 6px !important;
       }
     }
 
