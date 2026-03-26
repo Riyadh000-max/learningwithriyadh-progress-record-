@@ -1797,10 +1797,17 @@
       let projHtml = '<div class="prog-section"><div class="prog-header">🏆 ' + (L ? 'Projects - Class ' : 'المشاريع - الصف ') + className + '</div>';
       PROJECTS.forEach((proj, projIdx) => {
         projHtml += `<div class="project-header">${L ? proj.en : proj.ar}</div>`;
-        if (projIdx === 0 && estu) {
-          projHtml += `<div class="prog-row"><span>${L ? 'Part 1 – Welcoming' : 'الجزء الأول – الترحيب'}</span>${eBadge(estu.p1, estu.p1_date)}</div>`;
-          projHtml += `<div class="prog-row"><span>${L ? 'Part 2 – Ramadan Deeds' : 'الجزء الثاني – أعمال رمضان'}</span>${eBadge(estu.p2, estu.p2_date)}</div>`;
-          projHtml += `<div class="prog-row"><span>${L ? 'Part 3 – Last 10 Days' : 'الجزء الثالث – العشر الأخيرة'}</span>${eBadge(estu.p3, estu.p3_date)}</div>`;
+        if (projIdx === 0) {
+          // For Project 1: prioritize teacher's manual ratings (projData), fall back to email data
+          const p1Rating = (projs[i] && projs[i]['proj1_part1']) || 'unmarked';
+          const p2Rating = (projs[i] && projs[i]['proj1_part2']) || 'unmarked';
+          const p3Rating = (projs[i] && projs[i]['proj1_part3']) || 'unmarked';
+          const p1Done = p1Rating !== 'unmarked' || (estu && estu.p1);
+          const p2Done = p2Rating !== 'unmarked' || (estu && estu.p2);
+          const p3Done = p3Rating !== 'unmarked' || (estu && estu.p3);
+          projHtml += `<div class="prog-row"><span>${L ? 'Part 1 – Welcoming' : 'الجزء الأول – الترحيب'}</span>${eBadge(p1Done, estu && estu.p1_date)}</div>`;
+          projHtml += `<div class="prog-row"><span>${L ? 'Part 2 – Ramadan Deeds' : 'الجزء الثاني – أعمال رمضان'}</span>${eBadge(p2Done, estu && estu.p2_date)}</div>`;
+          projHtml += `<div class="prog-row"><span>${L ? 'Part 3 – Last 10 Days' : 'الجزء الثالث – العشر الأخيرة'}</span>${eBadge(p3Done, estu && estu.p3_date)}</div>`;
         } else {
           PARTS.forEach(part => {
             const dataKey = proj.key + '_' + part.key;
