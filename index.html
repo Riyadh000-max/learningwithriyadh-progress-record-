@@ -1835,6 +1835,17 @@
       projData  = data.projs  || {};
       emailData = data.emails || {};
       render();
+      // Re-render whichever tab is currently active
+      if (isTeacher) {
+        if (curTab === 'marks') renderMarks();
+        if (curTab === 'hist') renderHistory();
+        if (curTab === 'overview') renderOverview();
+        if (curTab === 'email') renderEmail();
+      } else {
+        // If student mode and a student is selected, refresh their view
+        const stuName = document.getElementById('stu-name');
+        if (stuName && stuName.value !== '') showStudentProgress();
+      }
     });
   </script>
 </body>
