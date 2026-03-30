@@ -1524,11 +1524,36 @@
       const dataKey = proj.key + '_' + part.key;
       const data = getProjects(curClass);
       const L = lang === 'en';
+
+      // For Project 1: merge email submission data
+      function normN(s) { return (s||'').trim().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' '); }
+      const fbStu = emailData[curClass];
+      function findEstu(idx, nm) {
+        if (!fbStu || !fbStu.length) return null;
+        let e = fbStu[idx];
+        if (!e || normN(e.name) !== normN(nm)) e = fbStu.find(s => normN(s.name) === normN(nm)) || null;
+        return e;
+      }
+
       let rows = '';
       C[curClass].forEach((name, i) => {
         const val = (data[i] && data[i][dataKey]) || 'unmarked';
-        const label = rLabel(val);
-        rows += `<tr><td class="td-num">${i + 1}</td><td class="td-name">${name}</td><td><button class="rating-btn ${val}" onclick="cycleRating(${i})">${RATING_ICON[val]} ${label}</button></td></tr>`;
+        let displayVal = val;
+        let displayLabel = rLabel(val);
+        let displayIcon = RATING_ICON[val];
+
+        // For Project 1 parts: if unmarked, check if student submitted via email
+        if (curProj === 0 && val === 'unmarked') {
+          const estu = findEstu(i, name);
+          const partMap = { 0: 'p1', 1: 'p2', 2: 'p3' };
+          if (estu && estu[partMap[curPart]]) {
+            displayVal = 'acceptable';
+            displayLabel = L ? 'Submitted' : 'تم الإرسال';
+            displayIcon = '✅';
+          }
+        }
+
+        rows += `<tr><td class="td-num">${i + 1}</td><td class="td-name">${name}</td><td><button class="rating-btn ${displayVal}" onclick="cycleRating(${i})">${displayIcon} ${displayLabel}</button></td></tr>`;
       });
       document.getElementById('proj-body').innerHTML = rows;
     }
@@ -1589,26 +1614,62 @@
     // ============================================================
     function renderEmail() {
       const L = lang === 'en';
-      const students = emailData[curClass];
+      const cStudents = C[curClass];
+      const fbStudents = emailData[curClass];
 
       const noData = document.getElementById('email-no-data');
       const tableWrap = document.querySelector('#tab-email .table-wrap');
       const summary = document.getElementById('email-summary');
 
-      if (!students || students.length === 0) {
-        noData.style.display = 'block';
-        tableWrap.style.display = 'none';
-        summary.innerHTML = '';
-        return;
-      }
+      // Always show the table using the C array as the student list
       noData.style.display = 'none';
       tableWrap.style.display = 'block';
 
+      // Arabic name normalization (same as student mode)
+      function normName(s) {
+        return (s || '').trim()
+          .replace(/[أإآ]/g, 'ا')
+          .replace(/ة/g, 'ه')
+          .replace(/ى/g, 'ي')
+          .replace(/\s+/g, ' ');
+      }
+
+      // Find email data for a student by index then name
+      function findEmailStudent(idx, name) {
+        if (!fbStudents || fbStudents.length === 0) return null;
+        let estu = fbStudents[idx];
+        if (!estu || normName(estu.name) !== normName(name)) {
+          estu = fbStudents.find(s => normName(s.name) === normName(name)) || null;
+        }
+        return estu;
+      }
+
+      // Build merged data: C array students + emailData + projData
+      const projs = getProjects(curClass);
+      const merged = cStudents.map((name, i) => {
+        const estu = findEmailStudent(i, name);
+        const p1Rating = (projs[i] && projs[i]['proj1_part1']) || 'unmarked';
+        const p2Rating = (projs[i] && projs[i]['proj1_part2']) || 'unmarked';
+        const p3Rating = (projs[i] && projs[i]['proj1_part3']) || 'unmarked';
+        return {
+          num: i + 1,
+          name: name,
+          p1: p1Rating !== 'unmarked' || (estu && estu.p1),
+          p2: p2Rating !== 'unmarked' || (estu && estu.p2),
+          p3: p3Rating !== 'unmarked' || (estu && estu.p3),
+          p1_email: estu ? estu.p1_email : '',
+          p1_date: estu ? estu.p1_date : '',
+          p2_date: estu ? estu.p2_date : '',
+          p3_email: estu ? estu.p3_email : '',
+          p3_date: estu ? estu.p3_date : ''
+        };
+      });
+
       // Summary badges
-      const p1 = students.filter(s => s.p1).length;
-      const p2 = students.filter(s => s.p2).length;
-      const p3 = students.filter(s => s.p3).length;
-      const total = students.length;
+      const p1 = merged.filter(s => s.p1).length;
+      const p2 = merged.filter(s => s.p2).length;
+      const p3 = merged.filter(s => s.p3).length;
+      const total = merged.length;
 
       const badgeStyle = (color) =>
         `display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;background:${color};margin-bottom:4px`;
@@ -1624,7 +1685,7 @@
           P3 ${L?'Plans':'خطط'}: ${p3}/${total}
         </span>
         <span style="${badgeStyle('rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)')}">
-          ${L?'All 3':'الثلاثة'}: ${students.filter(s=>s.p1&&s.p2&&s.p3).length}/${total}
+          ${L?'All 3':'الثلاثة'}: ${merged.filter(s=>s.p1&&s.p2&&s.p3).length}/${total}
         </span>
       `;
 
@@ -1638,9 +1699,9 @@
       };
 
       let rows = '';
-      students.forEach((s, i) => {
+      merged.forEach((s) => {
         rows += `<tr>
-          <td class="td-num">${s.num || i+1}</td>
+          <td class="td-num">${s.num}</td>
           <td class="td-name">${s.name}</td>
           <td style="text-align:center">${badge(s.p1, s.p1_email, s.p1_date)}</td>
           <td style="text-align:center">${badge(s.p2, '', s.p2_date)}</td>
@@ -1659,6 +1720,16 @@
       const className = '1/' + cls;
       const projs = getProjects(cls);
       const hw = getHW(cls);
+
+      // Email data lookup helpers for Project 1
+      function normN(s) { return (s||'').trim().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' '); }
+      const fbStu = emailData[cls];
+      function findEstu(idx, nm) {
+        if (!fbStu || !fbStu.length) return null;
+        let e = fbStu[idx];
+        if (!e || normN(e.name) !== normN(nm)) e = fbStu.find(s => normN(s.name) === normN(nm)) || null;
+        return e;
+      }
 
       let html = `<div class="overview-title">📊 ${L ? 'Overview Record' : 'سجل النظرة العامة'}</div>`;
       html += `<div style="text-align:center;font-size:.82rem;font-weight:600;color:#334155;margin-bottom:2px">👨‍🏫 ${L ? 'Mr. Riyadh' : 'أستاذ رياض'}</div>`;
@@ -1708,12 +1779,26 @@
         html += `<td><span class="ov-badge amber">${excused}</span></td>`;
         html += `<td><span class="ov-badge ${attColor}">${attRate}%</span></td>`;
 
-        PROJECTS.forEach(p => {
-          PARTS.forEach(pt => {
+        PROJECTS.forEach((p, projIdx) => {
+          PARTS.forEach((pt, partIdx) => {
             const dataKey = p.key + '_' + pt.key;
-            const rating = (projs[i] && projs[i][dataKey]) || 'unmarked';
+            let rating = (projs[i] && projs[i][dataKey]) || 'unmarked';
+            let icon = RATING_ICON[rating];
+            let label = rLabel(rating);
+
+            // For Project 1: if unmarked, check email submission data
+            if (projIdx === 0 && rating === 'unmarked') {
+              const estu = findEstu(i, name);
+              const partMap = { 0: 'p1', 1: 'p2', 2: 'p3' };
+              if (estu && estu[partMap[partIdx]]) {
+                rating = 'acceptable';
+                icon = '✅';
+                label = L ? 'Submitted' : 'تم الإرسال';
+              }
+            }
+
             const ratingColor = { unmarked: 'slate', acceptable: 'green', brilliant: 'blue', masterpiece: 'purple' }[rating];
-            html += `<td><span class="ov-badge ${ratingColor}">${RATING_ICON[rating]} ${rLabel(rating)}</span></td>`;
+            html += `<td><span class="ov-badge ${ratingColor}">${icon} ${label}</span></td>`;
           });
         });
 
