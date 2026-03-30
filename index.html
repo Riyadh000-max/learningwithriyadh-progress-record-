@@ -1778,11 +1778,18 @@
       const attRate = totalDays > 0 ? Math.round(presentDays / totalDays * 100) : 0;
       attHtml += `</div><div style="margin-top:8px;font-size:.72rem;color:#64748b">${L ? 'Attendance Rate' : 'نسبة الحضور'}: ${attRate}%</div><div class="prog-bar"><div class="prog-fill" style="width:${attRate}%"></div></div></div>`;
 
-      // Email data lookup for this student
+      // Email data lookup for this student (with Arabic name normalization)
+      function normName(s) {
+        return (s || '').trim()
+          .replace(/[أإآ]/g, 'ا')
+          .replace(/ة/g, 'ه')
+          .replace(/ى/g, 'ي')
+          .replace(/\s+/g, ' ');
+      }
       const clsEmails = emailData[cls] || [];
       let estu = clsEmails[i];
-      if (!estu || estu.name !== studentName) {
-        estu = clsEmails.find(s => s.name === studentName) || null;
+      if (!estu || normName(estu.name) !== normName(studentName)) {
+        estu = clsEmails.find(s => normName(s.name) === normName(studentName)) || null;
       }
       const eBadge = (done, date) => {
         if (done) {
