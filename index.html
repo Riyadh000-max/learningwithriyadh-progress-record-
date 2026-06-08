@@ -10,6 +10,7 @@
     rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <style>
     *,
     *::before,
@@ -1162,19 +1163,19 @@
     </div>
   </div>
 
-  <!-- PIN OVERLAY -->
+  <!-- TEACHER LOGIN OVERLAY -->
   <div id="pin-overlay" class="pin-overlay hidden">
     <div class="pin-box">
-      <div class="pin-title"><span class="ar">الوصول المحمي</span><span class="en">Protected Access</span></div>
-      <div class="pin-sub"><span class="ar">أدخل الرقم السري للدخول</span><span class="en">Enter PIN to access Teacher
-          Mode</span></div>
-      <input type="password" id="pin-input" class="pin-input" maxlength="6" placeholder="••••••">
+      <div class="pin-title"><span class="ar">دخول المعلم</span><span class="en">Teacher Login</span></div>
+      <div class="pin-sub"><span class="ar">سجّل الدخول ببريدك الإلكتروني وكلمة المرور</span><span class="en">Sign in with your email and password</span></div>
+      <input type="email" id="teacher-email" class="pin-input" placeholder="email" autocomplete="username" style="letter-spacing:normal;text-align:left;direction:ltr">
+      <input type="password" id="pin-input" class="pin-input" placeholder="password" autocomplete="current-password" style="letter-spacing:normal;text-align:left;direction:ltr">
       <div class="pin-btns">
         <button class="cancel" onclick="cancelPin()"><span class="ar">إلغاء</span><span
             class="en">Cancel</span></button>
         <button class="submit" onclick="submitPin()"><span class="ar">دخول</span><span class="en">Enter</span></button>
       </div>
-      <div class="pin-error hidden" id="pin-error"><span class="ar">رقم خاطئ</span><span class="en">Incorrect PIN</span>
+      <div class="pin-error hidden" id="pin-error"><span class="ar">بيانات الدخول غير صحيحة</span><span class="en">Incorrect email or password</span>
       </div>
     </div>
   </div>
@@ -1195,6 +1196,8 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const auth = firebase.auth();
+    const TEACHER_EMAIL = 'abo.ans.1111@gmail.com';
 
     // ============================================================
     // DATA
@@ -1308,12 +1311,22 @@
     async function loadAllData() {
       try {
         setSyncStatus('syncing');
-        const snapshot = await db.ref('/').once('value');
-        const data = snapshot.val() || {};
-        attData = data.att || {};
-        hwData = data.hw || {};
-        projData = data.projs || {};
-        emailData = data.emails || {};
+        // Read each branch separately. att/hw/projs are readable by any signed-in
+        // user (students included); emails is teacher-only, so we read it only when
+        // signed in as the teacher. (Reading the whole root '/' would be denied for
+        // students, because the emails branch is locked.)
+        const [attSnap, hwSnap, projSnap] = await Promise.all([
+          db.ref('att').once('value'),
+          db.ref('hw').once('value'),
+          db.ref('projs').once('value')
+        ]);
+        attData = attSnap.val() || {};
+        hwData = hwSnap.val() || {};
+        projData = projSnap.val() || {};
+        if (isTeacher) {
+          const emailSnap = await db.ref('emails').once('value');
+          emailData = emailSnap.val() || {};
+        }
         setSyncStatus('online');
         document.getElementById('loading').classList.add('hidden');
         render();
@@ -1402,8 +1415,8 @@
       }
 
       applyLang();
-      loadAllData();
-      // Start in student mode by default - teacher mode requires PIN
+      // Data loads after sign-in completes (see auth.onAuthStateChanged below).
+      // Start in student mode by default - teacher mode requires login.
       onStuClassChange();
     })();
 
@@ -1446,7 +1459,8 @@
       if (!isTeacher) {
         document.getElementById('pin-overlay').classList.remove('hidden');
         document.getElementById('pin-input').value = '';
-        document.getElementById('pin-input').focus();
+        const em = document.getElementById('teacher-email');
+        if (em) em.focus();
         return;
       }
       document.getElementById('btn-teacher').classList.add('active');
@@ -1462,15 +1476,26 @@
       onStuClassChange();
     }
     function submitPin() {
-      const val = document.getElementById('pin-input').value;
-      if (val === PIN) {
-        isTeacher = true;
-        document.getElementById('pin-overlay').classList.add('hidden');
-        document.getElementById('pin-error').classList.add('hidden');
-        showTeacher();
-      } else {
-        document.getElementById('pin-error').classList.remove('hidden');
-      }
+      const email = (document.getElementById('teacher-email').value || '').trim();
+      const pass = document.getElementById('pin-input').value;
+      document.getElementById('pin-error').classList.add('hidden');
+      auth.signInWithEmailAndPassword(email, pass)
+        .then((cred) => {
+          if (cred.user && cred.user.email === TEACHER_EMAIL) {
+            // onAuthStateChanged also sets this and loads the teacher-only data.
+            isTeacher = true;
+            document.getElementById('pin-overlay').classList.add('hidden');
+            showTeacher();
+          } else {
+            // A valid account, but not the teacher account — deny.
+            auth.signOut();
+            document.getElementById('pin-error').classList.remove('hidden');
+          }
+        })
+        .catch((e) => {
+          console.error('Teacher login failed:', e && e.code);
+          document.getElementById('pin-error').classList.remove('hidden');
+        });
     }
     function cancelPin() {
       document.getElementById('pin-overlay').classList.add('hidden');
@@ -1930,25 +1955,59 @@
       document.getElementById('student-progress').innerHTML = headerHtml + attHtml + projHtml + hwHtml;
     }
 
-    // Listen for real-time updates
-    db.ref('/').on('value', (snapshot) => {
-      const data = snapshot.val() || {};
-      attData   = data.att    || {};
-      hwData    = data.hw     || {};
-      projData  = data.projs  || {};
-      emailData = data.emails || {};
-      render();
-      // Re-render whichever tab is currently active
-      if (isTeacher) {
-        if (curTab === 'marks') renderMarks();
-        if (curTab === 'hist') renderHistory();
-        if (curTab === 'overview') renderOverview();
-        if (curTab === 'email') renderEmail();
-      } else {
-        // If student mode and a student is selected, refresh their view
-        const stuName = document.getElementById('stu-name');
-        if (stuName && stuName.value !== '') showStudentProgress();
+    // ============================================================
+    // AUTH-DRIVEN LOADING + LIVE UPDATES
+    // Students get a silent anonymous session (needed to READ att/hw/projs per
+    // the security rules). Teacher Mode upgrades to a real email+password login,
+    // which unlocks the teacher-only "emails" branch and all WRITE access.
+    // We listen to each branch separately because reading the whole root '/'
+    // would be denied for students (the emails branch is locked to the teacher).
+    // ============================================================
+    let liveListenersAttached = false;
+    function attachLiveListeners() {
+      if (liveListenersAttached) return;
+      liveListenersAttached = true;
+      const refresh = () => {
+        render();
+        if (isTeacher) {
+          if (curTab === 'marks') renderMarks();
+          if (curTab === 'hist') renderHistory();
+          if (curTab === 'overview') renderOverview();
+          if (curTab === 'email') renderEmail();
+        } else {
+          const stuName = document.getElementById('stu-name');
+          if (stuName && stuName.value !== '') showStudentProgress();
+        }
+      };
+      db.ref('att').on('value',   (s) => { attData  = s.val() || {}; refresh(); });
+      db.ref('hw').on('value',    (s) => { hwData   = s.val() || {}; refresh(); });
+      db.ref('projs').on('value', (s) => { projData = s.val() || {}; refresh(); });
+    }
+    let emailListenerAttached = false;
+    function attachEmailListener() {
+      if (emailListenerAttached) return;
+      emailListenerAttached = true;
+      db.ref('emails').on('value', (s) => {
+        emailData = s.val() || {};
+        if (isTeacher && curTab === 'email') renderEmail();
+      });
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        // No session yet — sign students in silently so reads are allowed.
+        auth.signInAnonymously().catch((e) => {
+          console.error('Anonymous sign-in failed:', e && e.code, e && e.message);
+          setSyncStatus('offline');
+          document.getElementById('loading').classList.add('hidden');
+        });
+        return; // handler re-fires with the new anonymous user
       }
+      // We have a user (anonymous student, or the signed-in teacher).
+      isTeacher = !user.isAnonymous && user.email === TEACHER_EMAIL;
+      loadAllData();
+      attachLiveListeners();
+      if (isTeacher) attachEmailListener();
     });
   </script>
 </body>
